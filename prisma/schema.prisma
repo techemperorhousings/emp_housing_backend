@@ -26,6 +26,20 @@ model User {
   resetResquest String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  verified      Boolean  @default(false)
+  isVerified      Boolean  @default(false)
   kycVerified   Boolean  @default(false)
+  verifyToken    String?
+  verifyTokenExpires  DateTime?
+  resetPasswordToken  String?
+  resetPasswordTokenExpires  DateTime?
+  role              UserRole            @default(USER)
+  isActive          Boolean             @default(true)
+}
+
+enum UserRole {
+  USER
+  TENANT
+  LANDLORD
+  ADMIN
+  SUPERADMIN
 }

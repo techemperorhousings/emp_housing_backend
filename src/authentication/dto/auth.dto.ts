@@ -1,18 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsDate,
   IsEmail,
   IsNotEmpty,
-  IsObject,
-  IsOptional,
   IsString,
+  Matches,
   MaxLength,
 } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
 
 export class AuthDto {
   @ApiProperty({
     description: 'Email',
-    example: 'testuser@gmail.com',
+    example: 'nanretgungshik@gmail.com',
   })
   @IsEmail()
   @IsNotEmpty()
@@ -20,32 +19,24 @@ export class AuthDto {
 
   @ApiProperty({
     description: 'Username',
-    example: 'Tester',
+    example: 'nanret',
   })
   @IsNotEmpty()
   readonly username: string;
 
   @ApiProperty({
     description: 'First Name',
-    example: 'Test',
+    example: 'Nanret',
   })
   @IsNotEmpty()
   readonly firstname: string;
 
   @ApiProperty({
     description: 'Last Name',
-    example: 'Account',
+    example: 'John',
   })
   @IsNotEmpty()
   readonly lastname: string;
-
-  @ApiProperty({
-    description: 'Date of Birth',
-    example: '2000-01-01T00:00:00.000Z',
-  })
-  @IsDate()
-  @IsNotEmpty()
-  readonly dob: Date;
 
   @ApiProperty({
     description: 'Phone Number',
@@ -56,42 +47,17 @@ export class AuthDto {
   readonly phoneNumber: string;
 
   @ApiProperty({
-    description: 'Address',
-    example: '123 Main St',
-  })
-  @IsString()
-  @IsNotEmpty()
-  readonly address: string;
-
-  @ApiProperty({
-    description: 'Location',
-    example: {
-      lat: 'number',
-      lng: 'number',
-      formatted_address: 'string',
-      city: 'string',
-      country: 'string',
-      postal_code: 'string',
-    },
-  })
-  @IsObject()
-  @IsOptional()
-  readonly location: object;
-
-  @ApiProperty({
     description: 'Password',
-    example: 'password',
+    example: 'Password@123',
   })
   @IsString()
   @IsNotEmpty()
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/, {
+    message:
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+  })
   @MaxLength(60)
   readonly password: string;
-
-  // @ApiProperty({
-  //   description: 'Status',
-  //   example: 'ACTIVE',
-  // })
-  // @IsString()
-  // @IsNotEmpty()
-  // readonly status: string;
 }
+
+export class UpdateUserDto extends PartialType(AuthDto) {}
