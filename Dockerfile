@@ -1,9 +1,8 @@
 # syntax = docker/dockerfile:1
 
-# Adjust NODE_VERSION as desired
-ARG NODE_VERSION=18.12.1
+# Adjust NODE_VERSION as desired (use 18.18.2 or 20 for Prisma compatibility)
+ARG NODE_VERSION=18.18.2
 FROM node:${NODE_VERSION}-slim as base
-
 
 LABEL fly_launch_runtime="NestJS"
 
@@ -12,7 +11,6 @@ WORKDIR /app
 
 # Set production environment
 ENV NODE_ENV=production
-
 
 # Throw-away build stage to reduce size of final image
 FROM base as build
@@ -30,7 +28,6 @@ COPY --link . .
 
 # Generate prisma schema
 RUN npm run prisma:generate
-
 
 # Build application
 RUN npm run build
