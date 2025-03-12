@@ -53,13 +53,7 @@ export class AuthenticationService {
   async signup(params: AuthDto): Promise<object> {
     // Check if a user with the same email, username, or phone number already exists
     const existingUser = await this.prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: params.email },
-          { username: params.username },
-          { phoneNumber: params.phoneNumber },
-        ],
-      },
+      where: { email: params.email },
     });
 
     if (existingUser) {
@@ -81,6 +75,7 @@ export class AuthenticationService {
           username: params.username,
           password: hash,
           phoneNumber: params.phoneNumber,
+          role: params.role,
         },
       });
 
@@ -449,37 +444,37 @@ export class AuthenticationService {
     }
   }
 
-  async validatePhoneNoVerification(params: AuthValidateOtpDto): Promise<any> {
-    // TODO: ADD DOJAH VALIDATION
-    // const request: ValidateOtpDto = {
-    //   code: params.code,
-    //   reference_id: params.reference_id,
-    // };
-    if (params.code !== '123456') {
-      throw new BadRequestException('Invalid OTP');
-    }
-    // const response = await this.appService.validateOtp(request);
-    const response = {
-      valid: true,
-    };
+  // async validatePhoneNoVerification(params: AuthValidateOtpDto): Promise<any> {
+  //   // TODO: ADD DOJAH VALIDATION
+  //   // const request: ValidateOtpDto = {
+  //   //   code: params.code,
+  //   //   reference_id: params.reference_id,
+  //   // };
+  //   if (params.code !== '123456') {
+  //     throw new BadRequestException('Invalid OTP');
+  //   }
+  //   // const response = await this.appService.validateOtp(request);
+  //   const response = {
+  //     valid: true,
+  //   };
 
-    if (response.valid) {
-      const user = await this.prisma.user.update({
-        where: {
-          phoneNumber: formatPhone(params.phoneNo),
-        },
-        data: {
-          isVerified: true,
-        },
-      });
+  //   if (response.valid) {
+  //     const user = await this.prisma.user.update({
+  //       where: {
+  //         phoneNumber: formatPhone(params.phoneNo),
+  //       },
+  //       data: {
+  //         isVerified: true,
+  //       },
+  //     });
 
-      if (!user) throw new ForbiddenException('User does not exist');
-    } else {
-      throw new BadRequestException('Invalid OTP');
-    }
+  //     if (!user) throw new ForbiddenException('User does not exist');
+  //   } else {
+  //     throw new BadRequestException('Invalid OTP');
+  //   }
 
-    return response;
-  }
+  //   return response;
+  // }
 
   // async resetResquest(params: AuthValidateOtpDto): Promise<User> {
   //   if (params.code !== '123456') {

@@ -2,11 +2,13 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
+import { UserRole } from '@prisma/client';
 
 export class AuthDto {
   @ApiProperty({
@@ -45,6 +47,14 @@ export class AuthDto {
   @IsString()
   @IsNotEmpty()
   readonly phoneNumber: string;
+
+  @ApiProperty({
+    description: 'the role of the user',
+    example: 'USER',
+  })
+  @IsOptional()
+  @IsString()
+  readonly role: UserRole;
 
   @ApiProperty({
     description: 'Password',

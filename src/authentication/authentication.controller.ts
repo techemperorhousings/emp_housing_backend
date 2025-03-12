@@ -34,7 +34,6 @@ import {
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { Public } from '@decorators/index.decorator';
 import { Throttle } from '@nestjs/throttler';
-import { Request } from 'express';
 
 @ApiTags('Authentication')
 @Controller('/authentication')
@@ -46,6 +45,10 @@ export class AuthenticationController {
 
   @Public()
   @ApiOperation({ summary: 'Create Account' })
+  @ApiBody({
+    description: 'new user credentials',
+    type: AuthDto,
+  })
   @ApiResponse({
     status: 200,
     description: Message.ACCOUNT_CREATION_SUCCESS,
@@ -87,15 +90,15 @@ export class AuthenticationController {
     };
   }
 
-  @Patch('validate-otp')
-  async validatePhoneNoVerification(@Body() params: AuthValidateOtpDto) {
-    const user = await this._auth.validatePhoneNoVerification(params);
+  // @Patch('validate-otp')
+  // async validatePhoneNoVerification(@Body() params: AuthValidateOtpDto) {
+  //   const user = await this._auth.validatePhoneNoVerification(params);
 
-    return {
-      message: 'Your phone number has been verified successfully',
-      data: user,
-    };
-  }
+  //   return {
+  //     message: 'Your phone number has been verified successfully',
+  //     data: user,
+  //   };
+  // }
 
   @Throttle({ default: { limit: 3, ttl: 86400 } }) // Allow max 3 requests per 24 hours
   @Public()
