@@ -49,6 +49,14 @@ export class AuthDto {
   readonly phoneNumber: string;
 
   @ApiProperty({
+    description: 'Profile Image URL',
+    example: 'https://example.com/profile-image.jpg',
+  })
+  @IsString()
+  @IsOptional()
+  readonly profileImage: string;
+
+  @ApiProperty({
     description: 'the role of the user',
     example: 'USER',
   })

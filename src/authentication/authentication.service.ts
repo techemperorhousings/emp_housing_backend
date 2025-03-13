@@ -51,9 +51,14 @@ export class AuthenticationService {
   }
 
   async signup(params: AuthDto): Promise<object> {
-    // Check if a user with the same email, username, or phone number already exists
     const existingUser = await this.prisma.user.findFirst({
-      where: { email: params.email },
+      where: {
+        OR: [
+          { email: params.email },
+          { username: params.username },
+          { phoneNumber: params.phoneNumber },
+        ],
+      },
     });
 
     if (existingUser) {
