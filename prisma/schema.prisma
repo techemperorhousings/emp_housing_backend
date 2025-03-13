@@ -56,6 +56,7 @@ model KYC {
   documentType KycDocumentType
   documentUrl  String // Link to uploaded KYC document (e.g., ID card, passport)
   status       KycStatus       @default(PENDING)
+  reason    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -93,9 +94,9 @@ model Property {
   documents PropertyDocument[]
   // Listings associated with this property
   listings  Listing[]
+  purchases  Purchase[]
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
-  purchase  Purchase?
 }
 
 model PropertyDocument {
@@ -109,7 +110,7 @@ model PropertyDocument {
 
 model Feature {
   id          String   @id @default(uuid())
-  name        String   // Example: "Pool", "Gym", "Garage"
+  name        String // Example: "Pool", "Gym", "Garage"
   count       Int      @default(1)
   description String?
   property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
@@ -137,7 +138,8 @@ model Listing {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  rentals RentalAgreement[]
+  rentals   RentalAgreement[]
+  purchases Purchase[]
 }
 
 model RentalAgreement {
@@ -171,6 +173,9 @@ model Purchase {
   updatedAt     DateTime       @updatedAt
 
   // Relations
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String
+
   property   Property @relation(fields: [propertyId], references: [id])
   propertyId String   @unique
 
