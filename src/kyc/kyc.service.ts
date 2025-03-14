@@ -58,17 +58,27 @@ export class KycService {
       throw new BadRequestException('KYC is already processed');
     }
 
-    return this.prisma.kYC.update({
+    const newKyc = await this.prisma.kYC.update({
       where: { id: dto.kycId },
       data: { status: KycStatus.APPROVED },
     });
+
+    //update kycVerified to true
+    await this.prisma.user.update({
+      where: { id: kyc.userId },
+      data: { kycVerified: true },
+    });
+
+    return {
+      message: 'KYC approved successfully',
+      data: newKyc,
+    };
   }
 
   async rejectKyc(dto: RejectKycDto) {
     const kyc = await this.prisma.kYC.findUnique({
       where: { id: dto.kycId },
     });
-
     if (!kyc) {
       throw new NotFoundException('KYC record not found');
     }
@@ -77,13 +87,17 @@ export class KycService {
       throw new BadRequestException('KYC is already processed');
     }
 
-    return this.prisma.kYC.update({
+    await this.prisma.kYC.update({
       where: { id: dto.kycId },
       data: {
         status: KycStatus.REJECTED,
         reason: dto.reason,
       },
     });
+    return {
+      message: 'KYC rejected successfully',
+      data: dto,
+    };
   }
 
   async deleteKyc(id: string) {
