@@ -20,11 +20,11 @@ model User {
   password                  String
   firstname                 String
   lastname                  String
-  username                  String
-  phoneNumber               String?
+  username                  String    @unique
+  phoneNumber               String?   @unique
   profileImage              String?
   resetResquest             String?
-  isVerified                Boolean   @default(false)
+  verified                Boolean   @default(false)
   kycVerified               Boolean   @default(false)
   verifyToken               String?
   verifyTokenExpires        DateTime?

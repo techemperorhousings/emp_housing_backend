@@ -1,19 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsDate,
   IsEmail,
   IsNotEmpty,
+  IsObject,
   IsOptional,
   IsString,
-  Matches,
   MaxLength,
 } from 'class-validator';
-import { PartialType } from '@nestjs/mapped-types';
-import { UserRole } from '@prisma/client';
 
 export class AuthDto {
   @ApiProperty({
     description: 'Email',
-    example: 'nanretgungshik@gmail.com',
+    example: 'testuser@gmail.com',
   })
   @IsEmail()
   @IsNotEmpty()
@@ -21,24 +20,32 @@ export class AuthDto {
 
   @ApiProperty({
     description: 'Username',
-    example: 'nanret',
+    example: 'Tester',
   })
   @IsNotEmpty()
   readonly username: string;
 
   @ApiProperty({
     description: 'First Name',
-    example: 'Nanret',
+    example: 'Test',
   })
   @IsNotEmpty()
   readonly firstname: string;
 
   @ApiProperty({
     description: 'Last Name',
-    example: 'John',
+    example: 'Account',
   })
   @IsNotEmpty()
   readonly lastname: string;
+
+  @ApiProperty({
+    description: 'Date of Birth',
+    example: '2000-01-01T00:00:00.000Z',
+  })
+  @IsDate()
+  @IsNotEmpty()
+  readonly dob: Date;
 
   @ApiProperty({
     description: 'Phone Number',
@@ -49,33 +56,42 @@ export class AuthDto {
   readonly phoneNumber: string;
 
   @ApiProperty({
-    description: 'Profile Image URL',
-    example: 'https://example.com/profile-image.jpg',
-  })
-  @IsString()
-  @IsOptional()
-  readonly profileImage: string;
-
-  @ApiProperty({
-    description: 'the role of the user',
-    example: 'USER',
-  })
-  @IsOptional()
-  @IsString()
-  readonly role: UserRole;
-
-  @ApiProperty({
-    description: 'Password',
-    example: 'Password@123',
+    description: 'Address',
+    example: '123 Main St',
   })
   @IsString()
   @IsNotEmpty()
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/, {
-    message:
-      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+  readonly address: string;
+
+  @ApiProperty({
+    description: 'Location',
+    example: {
+      lat: 'number',
+      lng: 'number',
+      formatted_address: 'string',
+      city: 'string',
+      country: 'string',
+      postal_code: 'string',
+    },
   })
+  @IsObject()
+  @IsOptional()
+  readonly location: object;
+
+  @ApiProperty({
+    description: 'Password',
+    example: 'password',
+  })
+  @IsString()
+  @IsNotEmpty()
   @MaxLength(60)
   readonly password: string;
-}
 
-export class UpdateUserDto extends PartialType(AuthDto) {}
+  // @ApiProperty({
+  //   description: 'Status',
+  //   example: 'ACTIVE',
+  // })
+  // @IsString()
+  // @IsNotEmpty()
+  // readonly status: string;
+}

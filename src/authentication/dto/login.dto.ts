@@ -21,9 +21,9 @@ export class LoginDto {
   @IsNotEmpty()
   readonly email: string;
 
-  // @IsOptional()
-  // @IsString()
-  // readonly phoneNo: string;
+  @IsOptional()
+  @IsString()
+  readonly phoneNo: string;
 
   // @ApiProperty({
   //   description: 'Vendor Password',
