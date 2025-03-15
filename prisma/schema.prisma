@@ -15,17 +15,235 @@ datasource db {
 
 // User model - base for all user types
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  password      String
-  firstname     String
-  lastname      String
-  username      String   @unique
-  phoneNumber   String?  @unique
-  profileImage  String?
-  resetResquest String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  verified      Boolean  @default(false)
-  kycVerified   Boolean  @default(false)
+  id                        String    @id @default(uuid())
+  email                     String    @unique
+  password                  String
+  firstname                 String
+  lastname                  String
+  username                  String    @unique
+  phoneNumber               String?   @unique
+  profileImage              String?
+  resetResquest             String?
+  verified                Boolean   @default(false)
+  kycVerified               Boolean   @default(false)
+  verifyToken               String?
+  verifyTokenExpires        DateTime?
+  resetPasswordToken        String?
+  resetPasswordTokenExpires DateTime?
+  role                      UserRole  @default(USER)
+  isActive                  Boolean   @default(true)
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  // User can own properties (after buying or being assigned as the owner)
+  propertiesOwned Property[] @relation("PropertyOwner")
+
+  listings Listing[]
+
+  rentalAgreementsAsTenant   RentalAgreement[] @relation("Tenant")
+  rentalAgreementsAsLandlord RentalAgreement[] @relation("Landlord")
+
+  purchasesAsBuyer  Purchase[] @relation("Buyer")
+  purchasesAsSeller Purchase[] @relation("Seller")
+  KYC               KYC?
+}
+
+model KYC {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  documentType KycDocumentType
+  documentUrl  String // Link to uploaded KYC document (e.g., ID card, passport)
+  status       KycStatus       @default(PENDING)
+  reason    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Property {
+  id          String         @id @default(uuid())
+  title       String
+  description String
+  price       Decimal
+  location    String
+  type        PropertyType
+  status      PropertyStatus
+  owner       User           @relation("PropertyOwner", fields: [ownerId], references: [id])
+  ownerId     String // The user who currently owns the property
+
+  //address
+  street          String
+  nearestLandMark String
+  city            String
+  state           String
+  zipCode         String
+  country         String
+
+  // Property details
+  bedrooms  Int
+  bathrooms Int
+  area      Float // in square feet/meters
+  yearBuilt Int?
+  address   String
+
+  // Property specifications
+  features  Feature[] // Array of features like "garage", "pool", etc.
+  images    PropertyImage[]
+  documents PropertyDocument[]
+  // Listings associated with this property
+  listings  Listing[]
+  purchases  Purchase[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+model PropertyDocument {
+  id         String   @id @default(uuid())
+  name       String
+  url        String
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  uploadedAt DateTime @default(now())
+}
+
+model Feature {
+  id          String   @id @default(uuid())
+  name        String // Example: "Pool", "Gym", "Garage"
+  count       Int      @default(1)
+  description String?
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId  String
+}
+
+model PropertyImage {
+  id         String   @id @default(uuid())
+  url        String
+  isFeatured Boolean  @default(false)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+  uploadedAt DateTime @default(now())
+}
+
+model Listing {
+  id          String        @id @default(uuid())
+  property    Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId  String
+  listedBy    User          @relation(fields: [listedById], references: [id], onDelete: Cascade)
+  listedById  String
+  price       Decimal
+  status      ListingStatus @default(ACTIVE)
+  listingType ListingType
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  rentals   RentalAgreement[]
+  purchases Purchase[]
+}
+
+model RentalAgreement {
+  id            String       @id @default(uuid())
+  startDate     DateTime
+  endDate       DateTime
+  amount        Float
+  depositAmount Float
+  isPaid        Boolean      @default(false)
+  status        RentalStatus @default(ACTIVE)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id])
+  tenantId  String
+  tenant    User    @relation(name: "Tenant", fields: [tenantId], references: [id], onDelete: Cascade)
+
+  landlordId String
+  landlord   User   @relation(name: "Landlord", fields: [landlordId], references: [id], onDelete: Cascade)
+}
+
+model Purchase {
+  id            String         @id @default(uuid())
+  purchaseDate  DateTime
+  purchasePrice Float
+  status        PurchaseStatus @default(PENDING)
+  closingDate   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String
+
+  property   Property @relation(fields: [propertyId], references: [id])
+  propertyId String   @unique
+
+  buyerId String
+  buyer   User   @relation(name: "Buyer", fields: [buyerId], references: [id])
+
+  sellerId String
+  seller   User   @relation(name: "Seller", fields: [sellerId], references: [id])
+}
+
+enum KycDocumentType {
+  NATIONAL_ID
+  PASSPORT
+  DRIVERS_LICENSE
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PurchaseStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum RentalStatus {
+  PENDING
+  ACTIVE
+  TERMINATED
+  EXPIRED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  PENDING
+  SOLD
+  LEASED
+  OFF_MARKET
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  CONDO
+  TOWNHOUSE
+  LAND
+  COMMERCIAL
+}
+
+enum ListingType {
+  FOR_SALE
+  FOR_RENT
+}
+
+enum ListingStatus {
+  ACTIVE
+  PENDING
+  SOLD
+  LEASED
+  OFF_MARKET
 }

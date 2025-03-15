@@ -148,7 +148,7 @@ export class AuthenticationService {
       email,
     };
 
-    const secret = this.config.get('JWT_SCERET');
+    const secret = this.config.get('JWT_SECRET');
     const TTL = this.config.get('TTL');
 
     const token = await this.jwt.signAsync(payload, {

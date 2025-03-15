@@ -1,6 +1,7 @@
 export const Message = {
   MAGIC_LINK_SENT: 'Magic Link has been sent!🚀',
-  ACCOUNT_CREATION_SUCCESS: 'Account Created Successfully 🚀',
+  ACCOUNT_CREATION_SUCCESS:
+    'Account Created Successfully 🚀 Please check your email',
   LOGIN_SUCCESS: 'Login Successfully 🚀',
   ACCOUNT_FOUND: 'Account Found! 😊',
   ACCOUNT_UPDATED: 'Account updated !',

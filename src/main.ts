@@ -3,6 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import * as basicAuth from 'express-basic-auth';
 import { AppModule } from './app.module';
 import { setupSwagger } from '@setupSwagger';
+import { PrismaExceptionFilter } from '@exception-filters/prisma-exception.filter';
+import { HttpExceptionFilter } from '@exception-filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -32,6 +34,8 @@ async function bootstrap() {
   );
 
   setupSwagger(app);
+
+  app.useGlobalFilters(new HttpExceptionFilter(), new PrismaExceptionFilter());
 
   await app.listen(process.env.PORT ?? 3000);
 }
