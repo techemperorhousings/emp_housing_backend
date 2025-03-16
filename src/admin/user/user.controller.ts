@@ -19,18 +19,18 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import {
-  PaginationQueryDto,
   UpdateUserDto,
   UpdateUserRoleDto,
   UpdateUserStatusDto,
   UserDto,
 } from './dto/index.dto';
 import { AdminGuard } from '@guards/admin.guard';
+import { PaginationQueryDto } from '@utils/pagination.dto';
 
-@ApiTags('admin/users')
+@ApiTags('admin/user')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(AdminGuard)
-@Controller('admin/users')
+@Controller('admin/user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

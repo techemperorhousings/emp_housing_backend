@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import {
-  PaginationQueryDto,
   UpdateUserDto,
   UpdateUserRoleDto,
   UpdateUserStatusDto,
 } from './dto/index.dto';
 import { IPaginatedUsers, IUser } from './interfaces/index.interface';
+import { PaginationQueryDto } from '@utils/pagination.dto';
 
 @Injectable()
 export class UserService {
