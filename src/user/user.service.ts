@@ -58,12 +58,15 @@ export class UserService {
     return { message: 'User deleted successfully' };
   }
 
-  //get current logged in user
-  async findCurrentUser(userId: string): Promise<User> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return user;
+  //update profile picture
+  async updateProfilePicture(
+    userId: string,
+    pictureUrl: string,
+  ): Promise<{ message: string; data: any }> {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data: { profileImage: pictureUrl },
+    });
+    return { message: 'Profile picture updated successfully', data: user };
   }
 }
