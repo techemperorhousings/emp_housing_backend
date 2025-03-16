@@ -3,11 +3,6 @@ import { IsEnum, IsNotEmpty, IsString, IsUrl, IsUUID } from 'class-validator';
 import { KycDocumentType, KycStatus } from '@prisma/client';
 
 export class CreateKycDto {
-  @ApiProperty({ example: 'USER_ID_123', description: 'User ID' })
-  @IsNotEmpty()
-  @IsUUID()
-  userId: string;
-
   @ApiProperty({ example: 'PASSPORT', enum: KycDocumentType })
   @IsEnum(KycDocumentType)
   @IsNotEmpty()

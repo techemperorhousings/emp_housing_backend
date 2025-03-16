@@ -1,69 +1,43 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
-  Param,
-  Patch,
   Post,
+  Req,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { KycService } from './kyc.service';
-import { ApproveKycDto, CreateKycDto, RejectKycDto } from './dto/index.dto';
+import { CreateKycDto } from './dto/index.dto';
 
 @ApiTags('KYC')
+@ApiBearerAuth('JWT-auth')
 @Controller('kyc')
 export class KycController {
   constructor(private readonly kycService: KycService) {}
 
   @Post()
-  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Submit KYC for verification' })
   @ApiBody({ type: CreateKycDto })
-  async submitKyc(@Body() dto: CreateKycDto) {
-    return this.kycService.submitKyc(dto);
+  async submitKyc(@Body() dto: CreateKycDto, @Req() req) {
+    return this.kycService.submitKyc(dto, req.user.id);
   }
 
-  @Get(':userId')
-  @ApiBearerAuth('JWT-auth')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get KYC details by user ID' })
-  async getKycByUser(@Param('userId') userId: string) {
-    return this.kycService.getKycByUser(userId);
-  }
-
-  @Get()
-  @ApiBearerAuth('JWT-auth')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all KYC submissions (Admin only)' })
-  async getAllKycs() {
-    return this.kycService.getAllKycs();
-  }
-
-  @Patch(':id/approve')
-  @ApiBearerAuth('JWT-auth')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Approve a KYC request' })
-  async approve(@Body() dto: ApproveKycDto) {
-    return this.kycService.approveKyc(dto);
-  }
-
-  @Patch(':id/reject')
-  @ApiBearerAuth('JWT-auth')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reject a KYC request and provide a reason' })
-  async reject(@Body() dto: RejectKycDto) {
-    return this.kycService.rejectKyc(dto);
-  }
-
-  @Delete(':id')
-  @ApiBearerAuth('JWT-auth')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete KYC record' })
-  async deleteKyc(@Param('id') id: string) {
-    return this.kycService.deleteKyc(id);
+  @Get('status')
+  @ApiOperation({ summary: 'Check own KYC status' })
+  @ApiResponse({
+    status: 200,
+    description: 'KYC status retrieved successfully',
+  })
+  async getKycStatus(@Req() req) {
+    return this.kycService.getKycStatus(req.user.id);
   }
 }
