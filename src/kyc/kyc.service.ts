@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -17,13 +16,38 @@ export class KycService {
       where: { userId: dto.userId },
     });
 
-    if (existingKyc) {
-      throw new ConflictException('KYC already submitted');
+    if (existingKyc && existingKyc.status === 'PENDING') {
+      throw new BadRequestException('KYC already submitted and under review.');
     }
 
-    const kyc = await this.prisma.kYC.create({ data: dto });
+    if (existingKyc && existingKyc.status === 'APPROVED') {
+      throw new BadRequestException('KYC is already approved.');
+    }
+
+    const kyc = this.prisma.kYC.upsert({
+      where: { userId: dto.userId },
+      update: {
+        ...dto,
+        status: 'PENDING',
+      },
+      create: {
+        userId: dto.userId,
+        ...dto,
+        status: 'PENDING',
+      },
+    });
     return {
       message: 'KYC submitted successfully',
+      data: kyc,
+    };
+  }
+
+  //get kyc status
+  async getKycStatus(userId: string) {
+    const kyc = await this.prisma.kYC.findUnique({ where: { userId } });
+    if (!kyc) throw new NotFoundException('KYC record not found');
+    return {
+      message: 'KYC status fetched successfully',
       data: kyc,
     };
   }
