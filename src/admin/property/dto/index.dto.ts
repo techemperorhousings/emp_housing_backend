@@ -1,17 +1,61 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { PropertyStatus, PropertyType } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
-  IsString,
-  IsNumber,
   IsOptional,
-  IsNotEmpty,
+  IsNumber,
   IsEnum,
-  IsUUID,
-  IsBoolean,
+  IsString,
   IsArray,
+  IsBoolean,
+  IsNotEmpty,
+  IsUUID,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
-import { PropertyStatus, PropertyType } from '@prisma/client';
+
+export class PropertyFilterDto {
+  @ApiPropertyOptional({
+    example: 500000,
+    description: 'Filter properties by minimum price',
+  })
+  @IsOptional()
+  @IsNumber()
+  minPrice?: number;
+
+  @ApiPropertyOptional({
+    example: 1000000,
+    description: 'Filter properties by maximum price',
+  })
+  @IsOptional()
+  @IsNumber()
+  maxPrice?: number;
+
+  @ApiPropertyOptional({
+    example: PropertyStatus.SOLD,
+    enum: PropertyStatus,
+    description: 'Filter by property status',
+  })
+  @IsOptional()
+  @IsEnum(PropertyStatus)
+  status?: PropertyStatus;
+
+  @ApiPropertyOptional({
+    example: 'Los Angeles',
+    description: 'Filter properties by location',
+  })
+  @IsOptional()
+  @IsString()
+  location?: string;
+
+  @ApiPropertyOptional({
+    example: PropertyType.APARTMENT,
+    enum: PropertyType,
+    description: 'Filter by property type',
+  })
+  @IsOptional()
+  @IsEnum(PropertyType)
+  type?: PropertyType;
+}
 
 export class FeatureDto {
   @ApiProperty({
@@ -239,75 +283,3 @@ export class CreatePropertyDto {
 }
 
 export class UpdatePropertyDto extends PartialType(CreatePropertyDto) {}
-
-export class SearchQueryDto {
-  @ApiPropertyOptional({
-    example: 'Los Angeles',
-    description: 'Filter properties by location',
-  })
-  @IsOptional()
-  @IsString()
-  location?: string;
-
-  @ApiPropertyOptional({
-    example: PropertyType.APARTMENT,
-    enum: PropertyType,
-    description: 'Filter by property type',
-  })
-  @IsOptional()
-  @IsEnum(PropertyType)
-  type?: PropertyType;
-
-  @ApiPropertyOptional({
-    example: PropertyStatus.SOLD,
-    enum: PropertyStatus,
-    description: 'Filter by property status',
-  })
-  @IsOptional()
-  @IsEnum(PropertyStatus)
-  status?: PropertyStatus;
-}
-
-export class PropertyFilterDto {
-  @ApiPropertyOptional({
-    example: 500000,
-    description: 'Filter properties by minimum price',
-  })
-  @IsOptional()
-  @IsNumber()
-  minPrice?: number;
-
-  @ApiPropertyOptional({
-    example: 1000000,
-    description: 'Filter properties by maximum price',
-  })
-  @IsOptional()
-  @IsNumber()
-  maxPrice?: number;
-
-  @ApiPropertyOptional({
-    example: PropertyStatus.SOLD,
-    enum: PropertyStatus,
-    description: 'Filter by property status',
-  })
-  @IsOptional()
-  @IsEnum(PropertyStatus)
-  status?: PropertyStatus;
-
-  @ApiPropertyOptional({
-    example: 'Los Angeles',
-    description: 'Filter properties by location',
-  })
-  @IsOptional()
-  @IsString()
-  location?: string;
-
-  @ApiPropertyOptional({
-    example: PropertyType.APARTMENT,
-    enum: PropertyType,
-    description: 'Filter by property type',
-  })
-  @IsOptional()
-  @IsEnum(PropertyType)
-  type?: PropertyType;
-}

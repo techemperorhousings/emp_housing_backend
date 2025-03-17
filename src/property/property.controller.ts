@@ -5,10 +5,12 @@ import {
   Get,
   Param,
   Query,
-  Put,
   Delete,
   HttpCode,
   HttpStatus,
+  UseGuards,
+  Req,
+  Patch,
 } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import {
@@ -21,10 +23,13 @@ import {
 } from '@nestjs/swagger';
 import {
   CreatePropertyDto,
+  FeatureDto,
   PropertyFilterDto,
   UpdatePropertyDto,
 } from './dto/index.dto';
-import { Public } from '@decorators/index.decorator';
+import { OwnerResource, Public } from '@decorators/index.decorator';
+import { OwnerGuard } from '@guards/owner.guard';
+import { PaginationQueryDto } from '@utils/pagination.dto';
 
 @ApiTags('Properties')
 @Controller('properties')
@@ -70,17 +75,32 @@ export class PropertyController {
     description: 'Maximum price filter',
   })
   async findAll(@Query() filters: PropertyFilterDto) {
-    console.log(filters);
     return this.propertyService.findAll(filters);
   }
 
-  @Get('user/:userId')
+  @Patch(':id/feature/:featureId')
+  @ApiBearerAuth('JWT-auth')
+  @OwnerResource('property')
+  @UseGuards(OwnerGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update a property feature' })
+  @ApiParam({ name: 'id', required: true, description: 'Property ID' })
+  @ApiParam({ name: 'featureId', required: true, description: 'Feature ID' })
+  @ApiBody({ type: FeatureDto })
+  async updateFeature(
+    @Param('id') propertyId: string,
+    @Param('featureId') featureId: string,
+    @Body() feature: FeatureDto,
+  ) {
+    return this.propertyService.updateFeature(propertyId, featureId, feature);
+  }
+
+  @Get('user')
   @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Find all properties owned by a user' })
-  @ApiParam({ name: 'userId', required: true, description: 'User ID' })
-  async findAllByUser(@Param('userId') userId: string) {
-    return this.propertyService.findAllByUser(userId);
+  @ApiOperation({ summary: 'Find all properties owned by user' })
+  async findAllByUser(@Req() req, @Query() paginationDto: PaginationQueryDto) {
+    return this.propertyService.findAllByUser(req.user.id, paginationDto);
   }
 
   @Public()
@@ -89,8 +109,11 @@ export class PropertyController {
     summary: 'Search for properties by title, description, or location',
   })
   @ApiQuery({ name: 'query', required: true, description: 'Search keyword' })
-  async search(@Query('query') query: string) {
-    return this.propertyService.search(query);
+  async search(
+    @Query('query') query: string,
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.propertyService.search(query, pagination);
   }
 
   @Get(':id')
@@ -101,8 +124,10 @@ export class PropertyController {
     return this.propertyService.findOne(id);
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiBearerAuth('JWT-auth')
+  @OwnerResource('property')
+  @UseGuards(OwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a property' })
   @ApiParam({ name: 'id', required: true, description: 'Property ID' })
@@ -114,11 +139,57 @@ export class PropertyController {
     return this.propertyService.updateProperty(id, updatePropertyDto);
   }
 
+  @Delete(':id/document/:documentId')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('JWT-auth')
+  @OwnerResource('property')
+  @UseGuards(OwnerGuard)
+  @ApiOperation({ summary: 'Delete a property document' })
+  @ApiParam({ name: 'id', required: true, description: 'Property ID' })
+  @ApiParam({ name: 'documentId', required: true, description: 'Document ID' })
+  async deleteDocument(
+    @Param('id') propertyId: string,
+    @Param('documentId') documentId: string,
+  ) {
+    return this.propertyService.removeDocument(propertyId, documentId);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('JWT-auth')
+  @OwnerResource('property')
+  @UseGuards(OwnerGuard)
   @ApiOperation({ summary: 'Delete a property' })
   @ApiParam({ name: 'id', required: true, description: 'Property ID' })
   async delete(@Param('id') id: string) {
     return this.propertyService.deleteProperty(id);
+  }
+
+  @Delete(':id/image/:imageId')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Delete a property image' })
+  @ApiParam({ name: 'id', required: true, description: 'Property ID' })
+  @ApiParam({ name: 'imageId', required: true, description: 'Image ID' })
+  async deleteImage(
+    @Param('id') id: string,
+    @Param('imageId') imageId: string,
+  ) {
+    return this.propertyService.removeImage(id, imageId);
+  }
+
+  @Delete(':id/feature/featureId')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth('JWT-auth')
+  @OwnerResource('property')
+  @UseGuards(OwnerGuard)
+  @ApiOperation({ summary: 'Delete a property feature' })
+  @ApiParam({ name: 'id', required: true, description: 'Property ID' })
+  @ApiParam({ name: 'featureId', required: true, description: 'Feature ID' })
+  async deleteFeature(
+    @Param('id') propertyId: string,
+    @Param('featureId') featureId: string,
+  ) {
+    return this.propertyService.deleteFeature(propertyId, featureId);
   }
 }
