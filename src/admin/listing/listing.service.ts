@@ -14,7 +14,6 @@ export class ListingService {
     const [listings, total] = await Promise.all([
       this.prisma.listing.findMany({
         where: {
-          status,
           listingType,
           price: {
             gte: minPrice, // Greater than or equal to
@@ -37,6 +36,8 @@ export class ListingService {
             },
           },
         },
+        skip,
+        take,
       }),
       this.prisma.listing.count({
         where: {
