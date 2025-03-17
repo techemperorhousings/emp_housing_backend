@@ -5,7 +5,7 @@ import {
   ListingFilterDto,
   UpdateListingDto,
 } from './dto/index.dto';
-import { ListingStatus } from '@prisma/client';
+import { PaginationQueryDto } from '@utils/pagination.dto';
 
 @Injectable()
 export class ListingService {
@@ -13,6 +13,25 @@ export class ListingService {
 
   async createListing(body: CreateListingDto) {
     const { propertyId, listedById, ...listingData } = body;
+
+    //check if property nd user exists
+    const [property, listedBy] = await Promise.all([
+      this.prisma.property.findUnique({
+        where: { id: propertyId },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: listedById },
+      }),
+    ]);
+
+    if (!property) {
+      throw new NotFoundException('Property not found');
+    }
+
+    if (!listedBy) {
+      throw new NotFoundException('User not found');
+    }
+
     const listing = await this.prisma.listing.create({
       data: {
         ...listingData,
@@ -42,39 +61,58 @@ export class ListingService {
   }
 
   async findAllListings(filters: ListingFilterDto) {
-    const { propertyId, status, listingType, minPrice, maxPrice, location } =
-      filters;
+    const { status, listingType, minPrice, maxPrice, location } = filters;
 
-    const listings = await this.prisma.listing.findMany({
-      where: {
-        propertyId,
-        status,
-        listingType,
-        price: {
-          gte: minPrice, // Greater than or equal to
-          lte: maxPrice, // Less than or equal to
-        },
-        property: {
-          location: location
-            ? { contains: location, mode: 'insensitive' }
-            : undefined,
-        },
-      },
-      include: {
-        property: true,
-        listedBy: {
-          select: {
-            username: true,
-            firstname: true,
-            lastname: true,
-            email: true,
+    const { skip, take } = filters;
+    const [listings, total] = await Promise.all([
+      this.prisma.listing.findMany({
+        where: {
+          status,
+          listingType,
+          price: {
+            gte: minPrice, // Greater than or equal to
+            lte: maxPrice, // Less than or equal to
+          },
+          property: {
+            location: location
+              ? { contains: location, mode: 'insensitive' }
+              : undefined,
           },
         },
-      },
-    });
+        include: {
+          property: true,
+          listedBy: {
+            select: {
+              username: true,
+              firstname: true,
+              lastname: true,
+              email: true,
+            },
+          },
+        },
+      }),
+      this.prisma.listing.count({
+        where: {
+          status,
+          listingType,
+          price: {
+            gte: minPrice,
+            lte: maxPrice,
+          },
+          property: {
+            location: location
+              ? { contains: location, mode: 'insensitive' }
+              : undefined,
+          },
+        },
+      }),
+    ]);
     return {
       message: 'Listings fetched successfully',
       data: listings,
+      total,
+      skip,
+      take,
     };
   }
 
@@ -85,7 +123,7 @@ export class ListingService {
     });
 
     if (!listing) {
-      throw new NotFoundException(`Listing with ID ${id} not found`);
+      throw new NotFoundException(`Listing not found`);
     }
     return {
       message: 'Listing fetched successfully',
@@ -93,28 +131,51 @@ export class ListingService {
     };
   }
 
-  async findListingsByUser(userId: string) {
-    const listings = await this.prisma.listing.findMany({
-      where: { listedById: userId },
-      include: { property: true },
-    });
+  async findListingsByUser(userId: string, pagination: PaginationQueryDto) {
+    const { skip, take } = pagination;
+    const [listings, total] = await Promise.all([
+      this.prisma.listing.findMany({
+        where: { listedById: userId },
+        include: { property: true },
+        skip,
+        take,
+      }),
+      this.prisma.listing.count({
+        where: { listedById: userId },
+      }),
+    ]);
+
     return {
       message: 'Listings fetched successfully',
       data: listings,
+      total,
     };
   }
 
-  async findListingsByProperty(propertyId: string) {
-    const listings = await this.prisma.listing.findMany({
-      where: { propertyId },
-      include: { property: true },
-    });
+  async findListingsByProperty(
+    propertyId: string,
+    pagination: PaginationQueryDto,
+  ) {
+    const { skip, take } = pagination;
+
+    const [listings, total] = await Promise.all([
+      this.prisma.listing.findMany({
+        where: { propertyId },
+        include: { property: true },
+        skip,
+        take,
+      }),
+      this.prisma.listing.count({
+        where: { propertyId },
+      }),
+    ]);
+
     return {
       message: 'Listings fetched successfully',
       data: listings,
+      total,
     };
   }
-
   async updateListing(id: string, dto: UpdateListingDto) {
     await this.findListingById(id);
     const listing = await this.prisma.listing.update({
@@ -137,11 +198,11 @@ export class ListingService {
   }
 
   //update listing status
-  async updateListingStatus(id: string, status: ListingStatus) {
+  async updateListingStatus(id: string, isActive: boolean) {
     await this.findListingById(id);
     const listing = await this.prisma.listing.update({
       where: { id },
-      data: { status },
+      data: { isActive },
     });
     return {
       message: 'Listing status updated successfully',

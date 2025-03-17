@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ListingStatus, ListingType } from '@prisma/client';
+import { PaginationQueryDto } from '@utils/pagination.dto';
 import {
   IsUUID,
   IsNumber,
@@ -9,6 +10,7 @@ import {
   IsString,
   Max,
   Min,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateListingDto {
@@ -47,14 +49,13 @@ export class UpdateListingDto {
   @IsNumber()
   @IsOptional()
   price?: number;
+
+  @IsEnum(ListingType)
+  @IsOptional()
+  listingType?: ListingType;
 }
 
-export class ListingFilterDto {
-  @ApiPropertyOptional({ description: 'Filter by property ID' })
-  @IsUUID()
-  @IsOptional()
-  propertyId?: string;
-
+export class ListingFilterDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     enum: ListingStatus,
     description: 'Filter by listing status',
@@ -105,4 +106,14 @@ export class UpdateListingStatusDto {
   @IsUUID()
   @IsNotEmpty()
   id: string;
+}
+
+export class ActiveStatusDto {
+  @ApiProperty({
+    description: 'New active status for the listing',
+    example: true,
+  })
+  @IsBoolean()
+  @IsNotEmpty()
+  isActive: boolean;
 }
