@@ -50,6 +50,11 @@ export class UpdateListingDto {
   @IsOptional()
   price?: number;
 
+  @ApiProperty({
+    description: 'Updated type of the listing',
+    enum: ListingType,
+    required: false,
+  })
   @IsEnum(ListingType)
   @IsOptional()
   listingType?: ListingType;
