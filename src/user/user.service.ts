@@ -7,27 +7,6 @@ import { UpdateUserDto } from './dto/index.dto';
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  //get all users
-  async getAllUsers(): Promise<{ message: string; data: User[] }> {
-    const users = await this.prisma.user.findMany();
-    return {
-      message: 'Users fetched successfully',
-      data: users,
-    };
-  }
-
-  //get one user
-  async getOneUser(userId: string): Promise<{ message: string; data: User }> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return {
-      message: 'User fetched successfully',
-      data: user,
-    };
-  }
-
   //update user
   async updateUser(
     userId: string,
@@ -45,6 +24,22 @@ export class UserService {
     return {
       message: 'User updated successfully',
       data: updatedUser,
+    };
+  }
+
+  //get one user
+  async getOneUser(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return {
+      message: 'User fetched successfully',
+      data: user,
     };
   }
 
