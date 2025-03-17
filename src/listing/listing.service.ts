@@ -79,6 +79,8 @@ export class ListingService {
               : undefined,
           },
         },
+        skip,
+        take,
         include: {
           property: true,
           listedBy: {
