@@ -89,7 +89,9 @@ export class PropertyService {
     };
   }
 
-  async findAll(filters?: any) {
+  async findAll(pagination: PaginationQueryDto, filters?: any) {
+    const { skip, take } = pagination;
+
     // Prepare the where clause with text search capabilities
     const where: any = {};
 
@@ -109,15 +111,20 @@ export class PropertyService {
       if (filters.status) where.status = filters.status;
       if (filters.propertyType) where.propertyType = filters.propertyType;
     }
-
-    const properties = await this.prisma.property.findMany({
-      where,
-      include: { features: true, images: true },
-    });
+    const [properties, total] = await Promise.all([
+      this.prisma.property.findMany({
+        where,
+        include: { features: true, images: true },
+      }),
+      this.prisma.property.count({ where }),
+    ]);
 
     return {
       message: 'Properties fetched successfully',
       data: properties,
+      total,
+      skip,
+      take,
     };
   }
 

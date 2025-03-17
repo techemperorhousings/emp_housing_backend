@@ -74,8 +74,27 @@ export class PropertyController {
     required: false,
     description: 'Maximum price filter',
   })
-  async findAll(@Query() filters: PropertyFilterDto) {
-    return this.propertyService.findAll(filters);
+  @ApiQuery({
+    name: 'skip',
+    required: false,
+    description: 'Page number',
+    type: Number,
+    default: 1,
+  })
+  @ApiQuery({
+    name: 'take',
+    required: false,
+    description: 'Number of items per page',
+    type: Number,
+    default: 10,
+    minimum: 1,
+    maximum: 50,
+  })
+  async findAll(
+    @Query() filters: PropertyFilterDto,
+    @Query() paginationDto: PaginationQueryDto,
+  ) {
+    return this.propertyService.findAll(paginationDto, filters);
   }
 
   @Patch(':id/feature/:featureId')
