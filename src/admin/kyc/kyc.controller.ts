@@ -28,10 +28,6 @@ export class KycController {
 
   @Get()
   @ApiOperation({ summary: 'Get all KYC submissions with pagination' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of KYC submissions with pagination info',
-  })
   async getAllKyc(@Query() query: GetKycQueryDto) {
     return this.kycService.getAllKyc(query);
   }
