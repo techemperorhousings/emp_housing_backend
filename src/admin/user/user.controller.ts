@@ -37,10 +37,6 @@ export class UserController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all users with pagination' })
-  @ApiResponse({
-    status: 200,
-    description: 'List of users with pagination info',
-  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({
     status: 403,
