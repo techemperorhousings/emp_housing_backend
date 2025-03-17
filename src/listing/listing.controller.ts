@@ -4,11 +4,13 @@ import {
   Body,
   Get,
   Param,
-  Put,
   Delete,
   Query,
   HttpCode,
   HttpStatus,
+  UseGuards,
+  Req,
+  Patch,
 } from '@nestjs/common';
 import { ListingService } from './listing.service';
 import {
@@ -19,16 +21,17 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import {
+  ActiveStatusDto,
   CreateListingDto,
   ListingFilterDto,
   UpdateListingDto,
-  UpdateListingStatusDto,
 } from './dto/index.dto';
-import { ListingStatus } from '@prisma/client';
-import { Public } from '@decorators/index.decorator';
+import { Public, OwnerResource } from '@decorators/index.decorator';
+import { OwnerGuard } from '@guards/owner.guard';
+import { PaginationQueryDto } from '@utils/pagination.dto';
 
-@ApiTags('Listings')
-@Controller('listings')
+@ApiTags('Listing')
+@Controller('listing')
 export class ListingController {
   constructor(private readonly listingService: ListingService) {}
 
@@ -48,6 +51,24 @@ export class ListingController {
     return this.listingService.findAllListings(filters);
   }
 
+  @Get('user')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Retrieve all listings created by a user' })
+  async findByUser(@Req() req, @Query() pagination: PaginationQueryDto) {
+    return this.listingService.findListingsByUser(req.user.id, pagination);
+  }
+
+  @Get('property/:propertyId')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Retrieve all listings for a specific property' })
+  @ApiParam({ name: 'propertyId', required: true, description: 'Property ID' })
+  async findByProperty(
+    @Param('propertyId') propertyId: string,
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.listingService.findListingsByProperty(propertyId, pagination);
+  }
+
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve a listing by ID' })
@@ -56,24 +77,25 @@ export class ListingController {
     return this.listingService.findListingById(id);
   }
 
-  @Public()
-  @Get('user/:userId')
-  @ApiOperation({ summary: 'Retrieve all listings created by a user' })
-  @ApiParam({ name: 'userId', required: true, description: 'User ID' })
-  async findByUser(@Param('userId') userId: string) {
-    return this.listingService.findListingsByUser(userId);
+  @Patch(':id/status')
+  @ApiBearerAuth('JWT-auth')
+  @OwnerResource('listing')
+  @UseGuards(OwnerGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update the status of a listing' })
+  @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
+  @ApiBody({
+    type: ActiveStatusDto,
+  })
+  async updateStatus(@Param() param, @Body('isActive') isActive: boolean) {
+    const { id } = param;
+    return this.listingService.updateListingStatus(id, isActive);
   }
 
-  @Get('property/:propertyId')
+  @Patch(':id')
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Retrieve all listings for a specific property' })
-  @ApiParam({ name: 'propertyId', required: true, description: 'Property ID' })
-  async findByProperty(@Param('propertyId') propertyId: string) {
-    return this.listingService.findListingsByProperty(propertyId);
-  }
-
-  @Put(':id')
-  @ApiBearerAuth('JWT-auth')
+  @OwnerResource('listing')
+  @UseGuards(OwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a listing' })
   @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
@@ -82,24 +104,10 @@ export class ListingController {
     return this.listingService.updateListing(id, dto);
   }
 
-  @Put(':id/status/:status')
-  @ApiBearerAuth('JWT-auth')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update the status of a listing' })
-  @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
-  @ApiParam({
-    name: 'status',
-    required: true,
-    description: 'New status',
-    enum: ListingStatus,
-  })
-  async updateStatus(@Param() params: UpdateListingStatusDto) {
-    const { id, status } = params;
-    return this.listingService.updateListingStatus(id, status);
-  }
-
   @Delete(':id')
   @ApiBearerAuth('JWT-auth')
+  @OwnerResource('listing')
+  @UseGuards(OwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a listing' })
   @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
