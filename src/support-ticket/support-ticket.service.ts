@@ -118,7 +118,6 @@ export class SupportTicketService {
 
   //get assigned tickets
   async getAssignedTickets(userId) {
-    console.log(userId)
     const tickets = await this.prisma.supportTicket.findMany({
       where: { assignedToId: userId },
     });
