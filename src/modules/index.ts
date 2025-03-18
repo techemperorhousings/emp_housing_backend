@@ -10,7 +10,15 @@ import { KycModule } from '@kyc/kyc.module';
 import { ListingModule } from '@listing/listing.module';
 import { PropertyModule } from '@property/property.module';
 import { PurchaseModule } from '@purchase/purchase.module';
-import { RentalModule } from '@rental/rental.module';
+import { RentalAgreementModule } from '@rental/rental-agreement.module';
+import { FavoriteModule } from '@favorite/favorite.module';
+import { OfferModule } from '@offer/offer.module';
+import { PropertyBookingModule } from '@property-booking/property-booking.module';
+import { PropertyDocumentModule } from '@property-document/property-document.module';
+import { PropertyTourModule } from '@property-tour/property-tour.module';
+import { RentalPaymentModule } from '@rental-payment/rental-payment.module';
+import { ReviewModule } from '@review/review.module';
+import { SupportTicketModule } from '@support-ticket/support-ticket.module';
 
 export const modules = [
   ConfigModule.forRoot({
@@ -28,6 +36,14 @@ export const modules = [
   FileUploadModule,
   PropertyModule,
   ListingModule,
-  RentalModule,
+  RentalAgreementModule,
+  PropertyBookingModule,
   PurchaseModule,
+  PropertyDocumentModule,
+  RentalPaymentModule,
+  PropertyTourModule,
+  OfferModule,
+  ReviewModule,
+  FavoriteModule,
+  SupportTicketModule,
 ];
