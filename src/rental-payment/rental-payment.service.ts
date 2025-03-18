@@ -110,14 +110,4 @@ export class RentalPaymentService {
       data: payments,
     };
   }
-
-  async getPaymentsByStatus(isPaid: boolean) {
-    const payments = await this.prisma.rentalPayment.findMany({
-      where: { isPaid },
-    });
-    return {
-      message: 'Rental Payments fetched successfully',
-      data: payments,
-    };
-  }
 }

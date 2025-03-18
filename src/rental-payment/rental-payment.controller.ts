@@ -59,16 +59,4 @@ export class RentalPaymentController {
   async getPaymentById(@Param('id') id: string) {
     return this.service.getPaymentById(id);
   }
-
-  @Get('status/:isPaid')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all payments by status (paid or unpaid)' })
-  @ApiParam({
-    name: 'isPaid',
-    description: 'Is the payment paid (true) or unpaid (false)',
-    enum: ['true', 'false'],
-  })
-  async getPaymentsByStatus(@Param('isPaid') isPaid: string) {
-    return this.service.getPaymentsByStatus(isPaid === 'true');
-  }
 }
