@@ -7,6 +7,7 @@ import { PurchaseModule } from '@admin/purchase/purchase.module';
 import { RentalAgreementModule } from '@admin/rental-agreement/rental-agreement.module';
 import { RentalPaymentModule } from '@admin/rental-payment/rental-payment.module';
 import { ReviewModule } from '@admin/review/review.module';
+import { SupportTicketModule } from '@admin/support-ticket/support-ticket.module';
 import { TourModule } from '@admin/tour/tour.module';
 import { UserModule } from '@admin/user/user.module';
 
@@ -22,4 +23,5 @@ export const adminModules = [
   TourModule,
   OfferModule,
   ReviewModule,
+  SupportTicketModule,
 ];
