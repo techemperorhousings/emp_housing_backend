@@ -5,6 +5,7 @@ import { PropertyModule } from '@admin/property/property.module';
 import { PurchaseModule } from '@admin/purchase/purchase.module';
 import { RentalAgreementModule } from '@admin/rental-agreement/rental-agreement.module';
 import { RentalPaymentModule } from '@admin/rental-payment/rental-payment.module';
+import { TourModule } from '@admin/tour/tour.module';
 import { UserModule } from '@admin/user/user.module';
 
 export const adminModules = [
@@ -16,4 +17,5 @@ export const adminModules = [
   RentalAgreementModule,
   RentalPaymentModule,
   PurchaseModule,
+  TourModule,
 ];
