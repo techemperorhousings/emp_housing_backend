@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PropertyStatus, PropertyType } from '@prisma/client';
+import { PaginationQueryDto } from '@utils/pagination.dto';
 
 export class FeatureDto {
   @ApiProperty({
@@ -268,7 +269,7 @@ export class SearchQueryDto {
   status?: PropertyStatus;
 }
 
-export class PropertyFilterDto {
+export class PropertyFilterDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     example: 500000,
     description: 'Filter properties by minimum price',

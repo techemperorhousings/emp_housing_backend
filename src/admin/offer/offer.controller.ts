@@ -13,7 +13,7 @@ import { AdminGuard } from '@guards/admin.guard';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { FilterDto, UpdateOfferStatusDto } from './dto/index.dto';
 
-ApiTags('admin/offers');
+@ApiTags('Admin Offers')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(AdminGuard)
 @Controller('admin/offers')
@@ -28,7 +28,7 @@ export class OfferController {
   }
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get specific order details' })
+  @ApiOperation({ summary: 'Get specific offer details' })
   async getOffer(@Param('id') id: string) {
     return this.service.getOfferById(id);
   }

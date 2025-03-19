@@ -10,13 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { TourService } from './tour.service';
-import {
-  ApiOperation,
-  ApiBearerAuth,
-  ApiTags,
-  ApiParam,
-  ApiBody,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiBearerAuth, ApiTags, ApiBody } from '@nestjs/swagger';
 import { AdminGuard } from '@guards/admin.guard';
 import {
   AssignAgentDto,
@@ -24,7 +18,7 @@ import {
   UpdateTourStatusDto,
 } from './dto/index.dto';
 
-@ApiTags('admin/tours')
+@ApiTags('Admin Property Tours')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(AdminGuard)
 @Controller('admin/tours')
@@ -44,12 +38,6 @@ export class TourController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get a single tour details',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'Tour ID',
-    type: 'string',
-    required: true,
   })
   async getTourById(@Param('id') tourId: string) {
     return this.service.getTourById(tourId);

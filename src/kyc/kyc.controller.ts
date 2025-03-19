@@ -9,7 +9,6 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -26,7 +25,6 @@ export class KycController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Submit KYC for verification' })
-  @ApiBody({ type: CreateKycDto })
   async submitKyc(@Body() dto: CreateKycDto, @Req() req) {
     return this.kycService.submitKyc(dto, req.user.id);
   }

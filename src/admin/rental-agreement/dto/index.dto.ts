@@ -3,7 +3,7 @@ import { RentalStatus } from '@prisma/client';
 import { IsNotEmpty, IsEnum, IsUUID } from 'class-validator';
 
 export class UpdateRentalStatusDto {
-  @ApiProperty({ description: 'New rental status' })
+  @ApiProperty({ description: 'New rental status', enum: RentalStatus })
   @IsNotEmpty()
   @IsEnum(RentalStatus)
   status: RentalStatus;

@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { PropertyStatus, PropertyType } from '@prisma/client';
+import { PaginationQueryDto } from '@utils/pagination.dto';
 import { Type } from 'class-transformer';
 import {
   IsOptional,
@@ -13,7 +14,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
-export class PropertyFilterDto {
+export class PropertyFilterDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     example: 500000,
     description: 'Filter properties by minimum price',
@@ -283,3 +284,21 @@ export class CreatePropertyDto {
 }
 
 export class UpdatePropertyDto extends PartialType(CreatePropertyDto) {}
+
+export class PropertyStatusDto {
+  @ApiProperty({
+    enum: PropertyStatus,
+    description: 'Current status of the property',
+  })
+  @IsNotEmpty()
+  @IsEnum(PropertyStatus)
+  status: PropertyStatus;
+
+  @ApiProperty({
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'Unique identifier of the property',
+  })
+  @IsNotEmpty()
+  @IsUUID()
+  id: string;
+}

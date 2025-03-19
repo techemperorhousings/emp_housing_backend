@@ -11,19 +11,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PropertyService } from './property.service';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminGuard } from '@guards/admin.guard';
-import { PropertyFilterDto, UpdatePropertyDto } from './dto/index.dto';
-import { PropertyStatus } from '@prisma/client';
+import {
+  PropertyFilterDto,
+  PropertyStatusDto,
+  UpdatePropertyDto,
+} from './dto/index.dto';
 
-@ApiTags('admin/property')
+@ApiTags('Admin Propery')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(AdminGuard)
 @Controller('admin/property')
@@ -33,38 +29,12 @@ export class PropertyController {
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all properties with optional filters' })
-  @ApiQuery({
-    name: 'location',
-    required: false,
-    description: 'Filter by location',
-  })
-  @ApiQuery({
-    name: 'type',
-    required: false,
-    description: 'Filter by property type',
-  })
-  @ApiQuery({
-    name: 'status',
-    required: false,
-    description: 'Filter by status',
-  })
-  @ApiQuery({
-    name: 'minPrice',
-    required: false,
-    description: 'Minimum price filter',
-  })
-  @ApiQuery({
-    name: 'maxPrice',
-    required: false,
-    description: 'Maximum price filter',
-  })
   async findAll(@Query() filters: PropertyFilterDto) {
     return this.propertyService.findAll(filters);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Find a property by ID' })
-  @ApiParam({ name: 'id', required: true, description: 'Property ID' })
   async findOne(@Param('id') id: string) {
     return this.propertyService.findOne(id);
   }
@@ -72,8 +42,6 @@ export class PropertyController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a property' })
-  @ApiParam({ name: 'id', required: true, description: 'Property ID' })
-  @ApiBody({ type: UpdatePropertyDto })
   async update(
     @Param('id') id: string,
     @Body() updatePropertyDto: UpdatePropertyDto,
@@ -81,28 +49,17 @@ export class PropertyController {
     return this.propertyService.updateProperty(id, updatePropertyDto);
   }
 
-  @Patch(':id/status')
+  @Patch(':id/status/:status')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update the status of a property' })
-  @ApiParam({ name: 'id', required: true, description: 'Property ID' })
-  @ApiQuery({
-    name: 'status',
-    required: true,
-    description: 'New status',
-    enum: PropertyStatus,
-  })
   @HttpCode(HttpStatus.OK)
-  async updateStatus(
-    @Param('id') id: string,
-    @Query('status') status: PropertyStatus,
-  ) {
+  async updateStatus(@Param() param: PropertyStatusDto) {
+    const { id, status } = param;
     return this.propertyService.updatePropertyStatus(id, status);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a property' })
-  @ApiParam({ name: 'id', required: true, description: 'Property ID' })
   async delete(@Param('id') id: string) {
     return this.propertyService.deleteProperty(id);
   }

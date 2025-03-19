@@ -11,7 +11,7 @@ import { PaginationQueryDto } from '@utils/pagination.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AdminGuard } from '@guards/admin.guard';
 
-@ApiTags('admin/reviews')
+@ApiTags('Admin Reviews')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(AdminGuard)
 @Controller('admin/reviews')

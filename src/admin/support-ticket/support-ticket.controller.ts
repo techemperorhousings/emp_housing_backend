@@ -15,7 +15,7 @@ import { AssignTicketDto, FilterDto, TicketPriorityDto } from './dto/index.dto';
 import { AdminGuard } from '@guards/admin.guard';
 import { TicketPriority } from '@prisma/client';
 
-@ApiTags('admin/tickets')
+@ApiTags('Admin Support Tickets')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(AdminGuard)
 @Controller('admin/tickets')

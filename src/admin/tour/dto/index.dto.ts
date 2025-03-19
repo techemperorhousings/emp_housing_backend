@@ -24,6 +24,7 @@ export class AssignAgentDto {
     description: 'Agent ID',
     type: 'string',
     required: true,
+    example: 'ba9f1581-a991-49a6-ad75-0edea1da523e',
   })
   @IsNotEmpty()
   @IsString()

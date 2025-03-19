@@ -13,13 +13,7 @@ import {
   Patch,
 } from '@nestjs/common';
 import { ListingService } from './listing.service';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBody,
-  ApiParam,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import {
   ActiveStatusDto,
   CreateListingDto,
@@ -39,7 +33,6 @@ export class ListingController {
   @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new listing for a property' })
-  @ApiBody({ type: CreateListingDto })
   async create(@Body() dto: CreateListingDto) {
     return this.listingService.createListing(dto);
   }
@@ -61,7 +54,6 @@ export class ListingController {
   @Get('property/:propertyId')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Retrieve all listings for a specific property' })
-  @ApiParam({ name: 'propertyId', required: true, description: 'Property ID' })
   async findByProperty(
     @Param('propertyId') propertyId: string,
     @Query() pagination: PaginationQueryDto,
@@ -72,7 +64,6 @@ export class ListingController {
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve a listing by ID' })
-  @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
   async findOne(@Param('id') id: string) {
     return this.listingService.findListingById(id);
   }
@@ -83,12 +74,13 @@ export class ListingController {
   @UseGuards(OwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update the status of a listing' })
-  @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
   @ApiBody({
     type: ActiveStatusDto,
   })
-  async updateStatus(@Param() param, @Body('isActive') isActive: boolean) {
-    const { id } = param;
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('isActive') isActive: boolean,
+  ) {
     return this.listingService.updateListingStatus(id, isActive);
   }
 
@@ -98,8 +90,6 @@ export class ListingController {
   @UseGuards(OwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a listing' })
-  @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
-  @ApiBody({ type: UpdateListingDto })
   async update(@Param('id') id: string, @Body() dto: UpdateListingDto) {
     return this.listingService.updateListing(id, dto);
   }
@@ -110,7 +100,6 @@ export class ListingController {
   @UseGuards(OwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a listing' })
-  @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
   async delete(@Param('id') id: string) {
     return this.listingService.deleteListing(id);
   }

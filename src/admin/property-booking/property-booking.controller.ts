@@ -11,16 +11,10 @@ import {
 } from '@nestjs/common';
 import { PropertyBookingService } from './property-booking.service';
 import { AdminGuard } from '@guards/admin.guard';
-import {
-  ApiTags,
-  ApiBearerAuth,
-  ApiOperation,
-  ApiBody,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { BookingFilterDto, UpdateBookingStatusDto } from './dto/index.dto';
 
-@ApiTags('admin/bookings')
+@ApiTags('Admin Property Bookings')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(AdminGuard)
 @Controller('admin/bookings')
@@ -38,14 +32,9 @@ export class PropertyBookingController {
     return await this.service.getAllBookings(filterDto);
   }
 
-  @Patch(':id/status')
+  @Patch(':id/status/')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update the status of a booking' })
-  @ApiParam({ name: 'id', type: String, description: 'Booking ID' })
-  @ApiBody({
-    description: 'Booking status update payload',
-    type: UpdateBookingStatusDto,
-  })
   async updateBookingStatus(
     @Param('id') id: string,
     @Body() updateBookingStatusDto: UpdateBookingStatusDto,

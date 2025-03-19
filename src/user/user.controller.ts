@@ -14,8 +14,8 @@ import {
   ApiBearerAuth,
   ApiResponse,
   ApiBody,
-  ApiParam,
 } from '@nestjs/swagger';
+import { UpdateUserDto } from './dto/index.dto';
 
 @ApiBearerAuth('JWT-auth')
 @Controller('users')
@@ -23,7 +23,6 @@ export class UserController {
   constructor(private readonly service: UserService) {}
 
   @ApiOperation({ summary: 'Get user Profile' })
-  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
   @ApiResponse({
     status: 200,
@@ -36,27 +35,16 @@ export class UserController {
 
   @Patch(':id/profile')
   @ApiOperation({ summary: 'Update user profile' })
-  @ApiBody({
-    description: 'User details to update',
-    type: 'UpdateUserDto',
-  })
-  @ApiParam({
-    name: 'id',
-    required: true,
-    description: 'User ID',
-    type: 'string',
-  })
   @ApiResponse({
     status: 200,
     description: 'User updated successfully',
   })
   @HttpCode(HttpStatus.OK)
-  updateUser(@Param('id') userId: string, @Body() body) {
+  updateUser(@Param('id') userId: string, @Body() body: UpdateUserDto) {
     return this.service.updateUser(userId, body);
   }
 
   @ApiOperation({ summary: 'Update user profile picture' })
-  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
   @ApiBody({
     description: 'User profile picture URL',

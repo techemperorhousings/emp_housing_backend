@@ -9,13 +9,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { RentalPaymentService } from './rental-payment.service';
-import {
-  ApiOperation,
-  ApiBody,
-  ApiParam,
-  ApiBearerAuth,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateRentalPaymentDto } from './dto/index.dto';
 
 @ApiTags('Rental Payment')
@@ -27,7 +21,6 @@ export class RentalPaymentController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Make payment for a rental property' })
-  @ApiBody({ type: CreateRentalPaymentDto })
   async createPayment(@Body() dto: CreateRentalPaymentDto) {
     return this.service.makePayment(dto);
   }
@@ -41,21 +34,16 @@ export class RentalPaymentController {
     return this.service.getUserPayments(req.user.id);
   }
 
-  @Get('/property/:propertyID')
+  @Get('/property/:propertyId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all rental payments for a specific property' })
-  @ApiParam({ name: 'propertyID', description: 'Property ID' })
-  async getPropertyPayments(@Param('propertyID') propertyId: string) {
+  async getPropertyPayments(@Param('propertyId') propertyId: string) {
     return this.service.getPropertyPayments(propertyId);
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'View rental payment details' })
-  @ApiParam({
-    name: 'id',
-    description: 'Rental Payment ID',
-  })
   async getPaymentById(@Param('id') id: string) {
     return this.service.getPaymentById(id);
   }

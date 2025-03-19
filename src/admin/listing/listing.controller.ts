@@ -13,20 +13,22 @@ import {
 import { ListingService } from './listing.service';
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { AdminGuard } from '@guards/admin.guard';
 import { PaginationQueryDto } from '@utils/pagination.dto';
-import { ListingStatus } from '@prisma/client';
-import { ListingFilterDto, UpdateListingDto } from './dto/index.dto';
+import {
+  ListingFilterDto,
+  UpdateListingDto,
+  UpdateListingStatusDto,
+} from './dto/index.dto';
 
-@ApiTags('admin/listing')
+@ApiTags('Admin Listings')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(AdminGuard)
-@Controller('admin/listing')
+@Controller('admin/listings')
 export class ListingController {
   constructor(private readonly listingService: ListingService) {}
 
@@ -37,7 +39,6 @@ export class ListingController {
   }
 
   @Get('property/:propertyId')
-  @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Retrieve all listings for a specific property' })
   @ApiParam({ name: 'propertyId', required: true, description: 'Property ID' })
   async findByProperty(
@@ -55,17 +56,9 @@ export class ListingController {
   }
 
   @Patch(':id/status/:status')
-  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update the status of a listing' })
-  @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
-  @ApiParam({
-    name: 'status',
-    required: true,
-    description: 'New status',
-    enum: ListingStatus,
-  })
-  async updateStatus(@Param() param) {
+  async updateStatus(@Param() param: UpdateListingStatusDto) {
     const { id, status } = param;
     return this.listingService.updateListingStatus(id, status);
   }
@@ -73,8 +66,6 @@ export class ListingController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a listing' })
-  @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
-  @ApiBody({ type: UpdateListingDto })
   async update(@Param('id') id: string, @Body() dto: UpdateListingDto) {
     return this.listingService.updateListing(id, dto);
   }
@@ -82,7 +73,6 @@ export class ListingController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a listing' })
-  @ApiParam({ name: 'id', required: true, description: 'Listing ID' })
   async delete(@Param('id') id: string) {
     return this.listingService.deleteListing(id);
   }

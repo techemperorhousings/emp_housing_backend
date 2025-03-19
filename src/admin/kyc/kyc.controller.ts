@@ -14,12 +14,11 @@ import {
   ApiTags,
   ApiBearerAuth,
   ApiOperation,
-  ApiParam,
   ApiResponse,
 } from '@nestjs/swagger';
 import { GetKycQueryDto, RejectKycDto } from './dto/index.dto';
 
-@ApiTags('admin/kyc')
+@ApiTags('Admin kYC')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(AdminGuard)
 @Controller('admin/kyc')
@@ -34,7 +33,6 @@ export class KycController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get specific KYC submission by ID' })
-  @ApiParam({ name: 'id', description: 'KYC submission ID' })
   @ApiResponse({
     status: 200,
     description: 'KYC submission retrieved successfully',
@@ -45,7 +43,6 @@ export class KycController {
 
   @Patch(':id/approve')
   @ApiOperation({ summary: 'Approve KYC submission' })
-  @ApiParam({ name: 'id', description: 'KYC submission ID' })
   @ApiResponse({
     status: 200,
     description: 'KYC submission approved successfully',
@@ -56,7 +53,6 @@ export class KycController {
 
   @Patch(':id/reject')
   @ApiOperation({ summary: 'Reject KYC submission with reason' })
-  @ApiParam({ name: 'id', description: 'KYC submission ID' })
   @ApiResponse({
     status: 200,
     description: 'KYC submission rejected successfully',

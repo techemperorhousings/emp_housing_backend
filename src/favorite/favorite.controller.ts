@@ -14,7 +14,7 @@ import { PaginationQueryDto } from '@utils/pagination.dto';
 
 @ApiTags('Favorites')
 @ApiBearerAuth('JWT-auth')
-@Controller('favorite')
+@Controller('favorites')
 export class FavoriteController {
   constructor(private readonly service: FavoriteService) {}
 

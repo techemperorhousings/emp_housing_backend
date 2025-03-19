@@ -73,12 +73,6 @@ export class PropertyBookingController {
   @Patch(':id/approve')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Approve a booking request' })
-  @ApiParam({
-    name: 'id',
-    description: 'Booking ID',
-    type: 'string',
-    required: true,
-  })
   @ApiBody({
     description: 'Accept booking request payload',
     type: AcceptBookingDto,
@@ -94,12 +88,6 @@ export class PropertyBookingController {
   @Patch(':id/deny')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Deny a booking request' })
-  @ApiParam({
-    name: 'id',
-    description: 'Booking ID',
-    type: 'string',
-    required: true,
-  })
   @ApiBody({
     description: 'Deny booking request payload',
     type: RejectBookingDto,
