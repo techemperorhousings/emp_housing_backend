@@ -26,7 +26,7 @@ export const modules = [
   }),
   PassportModule.register({ defaultStrategy: 'jwt', session: false }),
   JwtModule.register({
-    secret: process.env.SECRET_KEY_JWT,
+    secret: process.env.JWT_SECRET,
   }),
   PrismaModule,
   AuthenticationModule,
