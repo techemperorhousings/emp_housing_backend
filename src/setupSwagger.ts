@@ -3,7 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 export const setupSwagger = (app: INestApplication) => {
   const config = new DocumentBuilder()
-    .setTitle('EMP API 🚌')
+    .setTitle('EMP API 🏠 ')
     .setDescription('The API description 🥶')
     .setVersion('1.0')
     .addTag('EMP')

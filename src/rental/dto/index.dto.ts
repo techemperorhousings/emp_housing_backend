@@ -1,6 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { RentalStatus } from '@prisma/client';
-import { IsUUID, IsDate, IsNotEmpty, IsEnum, IsNumber } from 'class-validator';
+import {
+  IsUUID,
+  IsNotEmpty,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateRentalAgreementDto {
   @ApiProperty({
@@ -12,20 +19,20 @@ export class CreateRentalAgreementDto {
   listingId: string;
 
   @ApiProperty({
+    description: 'ID of the property booking by user',
+    example: '9ba12401-b309-4405-abf4-0c00141f8f26',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  bookingId: string;
+
+  @ApiProperty({
     description: 'Tenant user ID',
     example: '84a9ae9a-3711-4114-86fe-2f4cdff2f03f',
   })
   @IsUUID()
   @IsNotEmpty()
   tenantId: string;
-
-  @ApiProperty({
-    description: 'Landlord user ID',
-    example: '2d2b3c9b-0172-4710-9ad5-42bd014a2ebd',
-  })
-  @IsUUID()
-  @IsNotEmpty()
-  landlordId: string;
 
   @ApiProperty({ description: 'Rent amount', example: 1500.0 })
   @IsNumber()
@@ -38,14 +45,36 @@ export class CreateRentalAgreementDto {
   depositAmount: number;
 
   @ApiProperty({ description: 'Lease start date', example: '2025-04-01' })
-  @IsDate()
+  @IsString()
   @IsNotEmpty()
-  startDate: Date;
+  startDate: string;
 
   @ApiProperty({ description: 'Lease end date', example: '2026-04-01' })
-  @IsDate()
+  @IsString()
   @IsNotEmpty()
-  endDate: Date;
+  endDate: string;
+}
+
+export class UpdateRentalAgreementDto {
+  @ApiPropertyOptional({ description: 'New rent amount' })
+  @IsNumber()
+  @IsOptional()
+  amount?: number;
+
+  @ApiProperty({ description: 'New deposit amount' })
+  @IsNumber()
+  @IsOptional()
+  depositAmount?: number;
+
+  @ApiProperty({ description: 'New lease start date' })
+  @IsString()
+  @IsOptional()
+  startDate?: string;
+
+  @ApiProperty({ description: 'New lease end date' })
+  @IsString()
+  @IsOptional()
+  endDate?: Date;
 }
 
 export class UpdateRentalStatusDto {

@@ -17,20 +17,17 @@ import {
   ApiBody,
   ApiResponse,
   ApiConsumes,
+  ApiTags,
 } from '@nestjs/swagger';
-import {
-  DeleteDto,
-  UploadFileDto,
-  UploadMultipleFilesDto,
-} from './dto/index.dto';
-
+import { UploadFileDto, UploadMultipleFilesDto } from './dto/index.dto';
+@ApiTags('File Upload')
+@ApiBearerAuth('JWT-auth')
 @Controller('file-upload')
 export class FileUploadController {
   constructor(private readonly service: FileUploadService) {}
 
   //upload one file
   @ApiOperation({ summary: 'Upload one file' })
-  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
   @ApiConsumes('multipart/form-data')
   @ApiBody({ description: 'File upload', type: UploadFileDto }) // Use DTO
@@ -52,7 +49,6 @@ export class FileUploadController {
 
   // Upload multiple images
   @ApiOperation({ summary: 'Upload multiple files' })
-  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -80,7 +76,6 @@ export class FileUploadController {
 
   // Delete a file
   @ApiOperation({ summary: 'Delete a file from Cloudinary' })
-  @ApiBearerAuth('JWT-auth')
   @HttpCode(HttpStatus.OK)
   @ApiResponse({
     status: 200,

@@ -1,5 +1,12 @@
-import { IsUUID, IsNumber, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsUUID,
+  IsNumber,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PurchaseStatus } from '@prisma/client';
 
 export class CreatePurchaseDto {
@@ -20,6 +27,14 @@ export class CreatePurchaseDto {
   buyerId: string;
 
   @ApiProperty({
+    description: 'The ID of the transaction associated with the purchase',
+    example: 'TXN_ABC123',
+  })
+  @IsString()
+  @IsNotEmpty()
+  transactionId: string;
+
+  @ApiProperty({
     description: 'The ID of the seller who owns the listing',
     example: '222e4567-e89b-12d3-a456-426614174002',
   })
@@ -33,15 +48,15 @@ export class CreatePurchaseDto {
   })
   @IsNumber()
   @IsNotEmpty()
-  purchasePrice: number;
+  amount: number;
 
-  @ApiProperty({
-    description: 'The closing date for the purchase',
-    example: '2022-01-01',
+  @ApiPropertyOptional({
+    description: 'The notes associated with the purchase',
+    example: 'This is a great deal!',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  closingDate: string;
+  notes?: string;
 
   @ApiProperty({
     description: 'The date when the purchase was made',

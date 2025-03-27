@@ -1,54 +1,58 @@
-import { Reflector } from '@nestjs/core';
 import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
   Injectable,
 } from '@nestjs/common';
-import { PrismaService } from '@prisma/prisma.service';
+import { Reflector } from '@nestjs/core';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class OwnerGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private prisma: PrismaService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
-    const user = (request as any).user; // Extract user from JWT
-    const resourceId = (request as any).id; // Get resource ID from URL params
+    const request = context.switchToHttp().getRequest();
+    const user = request.user; // Extract user from JWT
+    const resourceId = request.params.id; // Get resource ID from URL params
     const resourceType = this.reflector.get<string>(
-      'resource',
+      'owner',
       context.getHandler(),
     ); // Get resource type from decorator
-
     if (!user || !resourceId || !resourceType) {
       throw new ForbiddenException('Unauthorized access');
     }
 
-    // // Fetch the resource dynamically from the database
-    // let resource;
-    // if (resourceType === 'property') {
-    //   resource = await this.prisma.property.findUnique({
-    //     where: { id: resourceId },
-    //   });
-    // } else if (resourceType === 'listing') {
-    //   resource = await this.prisma.listing.findUnique({
-    //     where: { id: resourceId },
-    //   });
-    // }
+    // Fetch the resource dynamically based on type
+    let resource;
+    switch (resourceType) {
+      case 'property':
+        resource = await this.prisma.property.findUnique({
+          where: { id: resourceId },
+        });
+        break;
+      case 'listing':
+        resource = await this.prisma.listing.findUnique({
+          where: { id: resourceId },
+        });
+        break;
+      default:
+        throw new ForbiddenException('Invalid resource type');
+    }
 
-    // if (!resource) {
-    //   throw new ForbiddenException('Resource not found');
-    // }
+    if (!resource) {
+      throw new ForbiddenException('Resource not found');
+    }
 
-    // // Ensure the logged-in user is the owner
-    // if (resource.ownerId !== user.id) {
-    //   throw new ForbiddenException(
-    //     'You do not have permission to modify this resource',
-    //   );
-    // }
+    // Ensure the logged-in user is the owner
+    if (resource.ownerId !== user.id) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this resource',
+      );
+    }
 
     return true;
   }

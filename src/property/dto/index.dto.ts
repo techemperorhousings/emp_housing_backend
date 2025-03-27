@@ -12,12 +12,14 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PropertyStatus, PropertyType } from '@prisma/client';
+import { PaginationQueryDto } from '@utils/pagination.dto';
 
-class FeatureDto {
+export class FeatureDto {
   @ApiProperty({
     example: 'Swimming Pool',
     description: 'Feature name of the property',
   })
+  @IsOptional()
   @IsString()
   name: string;
 
@@ -25,6 +27,7 @@ class FeatureDto {
     example: 1,
     description: 'Number of times this feature is available',
   })
+  @IsOptional()
   @IsNumber()
   count: number;
 
@@ -37,11 +40,12 @@ class FeatureDto {
   description?: string;
 }
 
-class PropertyImageDto {
+export class PropertyImageDto {
   @ApiProperty({
     example: 'https://example.com/image.jpg',
     description: 'URL of the property image',
   })
+  @IsNotEmpty()
   @IsString()
   url: string;
 
@@ -54,11 +58,12 @@ class PropertyImageDto {
   isFeatured?: boolean;
 }
 
-class PropertyDocumentDto {
+export class PropertyDocumentDto {
   @ApiProperty({
     example: 'https://example.com/document.pdf',
     description: 'URL of the property document',
   })
+  @IsNotEmpty()
   @IsString()
   url: string;
 
@@ -66,6 +71,7 @@ class PropertyDocumentDto {
     example: 'Ownership Deed',
     description: 'Name of the document',
   })
+  @IsNotEmpty()
   @IsString()
   name: string;
 }
@@ -108,15 +114,6 @@ export class CreatePropertyDto {
   @IsNotEmpty()
   @IsEnum(PropertyType)
   type: PropertyType;
-
-  @ApiProperty({
-    example: PropertyStatus.SOLD,
-    enum: PropertyStatus,
-    description: 'Current status of the property',
-  })
-  @IsNotEmpty()
-  @IsEnum(PropertyStatus)
-  status: PropertyStatus;
 
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440000',
@@ -211,33 +208,35 @@ export class CreatePropertyDto {
   @IsString()
   address: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: [FeatureDto],
     description: 'List of features included in the property',
   })
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => FeatureDto)
-  features: FeatureDto[];
+  features?: FeatureDto[];
 
   @ApiProperty({
     type: [PropertyImageDto],
     description: 'List of images of the property',
   })
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => PropertyImageDto)
-  images: PropertyImageDto[];
+  images?: PropertyImageDto[];
 
   @ApiProperty({
     type: [PropertyDocumentDto],
     description: 'List of documents related to the property',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => PropertyDocumentDto)
-  documents: PropertyDocumentDto[];
+  documents?: PropertyDocumentDto[];
 }
 
 export class UpdatePropertyDto extends PartialType(CreatePropertyDto) {}
@@ -270,7 +269,7 @@ export class SearchQueryDto {
   status?: PropertyStatus;
 }
 
-export class PropertyFilterDto {
+export class PropertyFilterDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     example: 500000,
     description: 'Filter properties by minimum price',

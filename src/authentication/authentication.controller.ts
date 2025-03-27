@@ -20,6 +20,7 @@ import {
   MagicLinkDto,
   RestPasswordDTO,
 } from './dto';
+import { Public } from '@decorators/index.decorator';
 
 @ApiTags('Authentication')
 @Controller('/authentication')
@@ -29,6 +30,7 @@ export class AuthenticationController {
     private readonly config: ConfigService,
   ) {}
 
+  @Public()
   @ApiOperation({ summary: 'Create Account' })
   @ApiResponse({
     status: 200,
@@ -42,6 +44,7 @@ export class AuthenticationController {
     };
   }
 
+  @Public()
   @Post('login')
   async signin(@Body() params: LoginDto) {
     const user = await this._auth.signin(params);
@@ -55,6 +58,7 @@ export class AuthenticationController {
     };
   }
 
+  @Public()
   @Post('magic-link')
   async magicLink(@Body() params: MagicLinkDto) {
     // const magicLink = generateRandomHash(150);
@@ -69,6 +73,7 @@ export class AuthenticationController {
     };
   }
 
+  @Public()
   @Get('verify-link/:id')
   async verfiyLink(@Req() req) {
     const {
@@ -83,6 +88,7 @@ export class AuthenticationController {
     };
   }
 
+  @Public()
   @Post('send-otp')
   async intialillizePhoneNoVerification(@Body() params: ForgetPasswordDTO) {
     const user = await this._auth.triggerVerification(params);
@@ -93,6 +99,7 @@ export class AuthenticationController {
     };
   }
 
+  @Public()
   @Patch('validate-otp')
   async validatePhoneNoVerification(@Body() params: AuthValidateOtpDto) {
     const user = await this._auth.validatePhoneNoVerification(params);
@@ -103,6 +110,7 @@ export class AuthenticationController {
     };
   }
 
+  @Public()
   @ApiOperation({ summary: 'Forgot Password' })
   @Post('forgot-password')
   async forgetPassword(@Body() params: ForgetPasswordDTO) {
@@ -115,6 +123,7 @@ export class AuthenticationController {
     };
   }
 
+  @Public()
   @ApiOperation({ summary: 'Validate Code for Forgot Password' })
   @Patch('forget-password-validation')
   async forgetPasswordValidation(@Body() params: AuthValidateOtpDto) {
@@ -126,6 +135,7 @@ export class AuthenticationController {
     };
   }
 
+  @Public()
   @ApiOperation({ summary: 'Reset Password' })
   @Post('reset-password')
   async resetPassword(@Body() params: RestPasswordDTO) {

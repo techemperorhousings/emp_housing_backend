@@ -1,13 +1,12 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
   Patch,
-  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -16,68 +15,47 @@ import {
   ApiResponse,
   ApiBody,
 } from '@nestjs/swagger';
-import { Roles } from '@decorators/index.decorator';
-import { RolesGuard } from '@guards/roles.guard';
+import { UpdateUserDto } from './dto/index.dto';
 
+@ApiBearerAuth('JWT-auth')
 @Controller('users')
 export class UserController {
   constructor(private readonly service: UserService) {}
 
-  @ApiOperation({ summary: 'Get all users' })
-  @ApiBearerAuth('JWT-auth')
-  @HttpCode(HttpStatus.OK)
-  @ApiResponse({
-    status: 200,
-    description: 'Users fetched successfully',
-  })
-  @Get()
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
-  getUsers() {
-    return this.service.getAllUsers();
-  }
-
-  @ApiOperation({ summary: 'Get user by ID' })
-  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get user Profile' })
   @HttpCode(HttpStatus.OK)
   @ApiResponse({
     status: 200,
     description: 'User fetched successfully',
   })
-  @Get(':id')
+  @Get(':id/profile')
   getUser(@Param('id') userId: string) {
     return this.service.getOneUser(userId);
   }
 
-  @ApiOperation({ summary: 'Update user by ID' })
-  @ApiBearerAuth('JWT-auth')
-  @ApiBody({
-    description: 'User details to update',
-    type: 'UpdateUserDto',
-  })
+  @Patch(':id/profile')
+  @ApiOperation({ summary: 'Update user profile' })
   @ApiResponse({
     status: 200,
     description: 'User updated successfully',
   })
   @HttpCode(HttpStatus.OK)
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
-  @Patch(':id')
-  updateUser(@Param('id') userId: string, @Body() body) {
+  updateUser(@Param('id') userId: string, @Body() body: UpdateUserDto) {
     return this.service.updateUser(userId, body);
   }
 
-  @ApiOperation({ summary: 'Delete user by ID' })
-  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Update user profile picture' })
   @HttpCode(HttpStatus.OK)
+  @ApiBody({
+    description: 'User profile picture URL',
+    type: 'string',
+  })
   @ApiResponse({
     status: 200,
-    description: 'User deleted successfully',
+    description: 'Profile picture updated successfully',
   })
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
-  @Delete(':id')
-  deleteUser(@Param('id') userId: string) {
-    return this.service.deleteUser(userId);
+  @Patch(':id/picture')
+  updateProfilePicture(@Req() req, @Body('pictureUrl') pictureUrl: string) {
+    return this.service.updateProfilePicture(req.user.id, pictureUrl);
   }
 }

@@ -289,7 +289,7 @@ export class AuthenticationService {
         phoneNumber: formatPhone(params.phoneNo) as string,
       },
       data: {
-        resetResquest: randomstring(42),
+        resetRequest: randomstring(42),
       },
     });
 
@@ -310,7 +310,7 @@ export class AuthenticationService {
       where: { phoneNumber: formatPhone(params.phoneNo) as string },
       data: {
         password: hash,
-        resetResquest: null,
+        resetRequest: null,
       },
     });
 
