@@ -3,10 +3,9 @@ import {
   IsOptional,
   IsBoolean,
   IsEmail,
-  IsEnum,
   IsString,
+  IsNotEmpty,
 } from 'class-validator';
-import { UserRole } from '@prisma/client';
 
 export class UserDto {
   @ApiProperty({
@@ -90,9 +89,9 @@ export class UpdateUserStatusDto {
 export class UpdateUserRoleDto {
   @ApiProperty({
     description: 'Role of the user',
-    enum: UserRole,
-    example: UserRole.USER,
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
-  @IsEnum(UserRole)
-  role: UserRole;
+  @IsNotEmpty()
+  @IsString()
+  roleId: string;
 }

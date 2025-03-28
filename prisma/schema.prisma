@@ -30,8 +30,7 @@ model User {
   verifyTokenExpires        DateTime?
   resetPasswordToken        String?
   resetPasswordTokenExpires DateTime?
-   KYC                        KYC?
-  role                      UserRole  @default(USER)
+  KYC                       KYC?
   isActive                  Boolean   @default(true)
   createdAt                 DateTime  @default(now())
   updatedAt                 DateTime  @updatedAt
@@ -42,20 +41,25 @@ model User {
   bookings                   PropertyBooking[]
   rentalAgreementsAsTenant   RentalAgreement[] @relation("Tenant")
   rentalAgreementsAsLandlord RentalAgreement[] @relation("Landlord")
-  purchasesAsBuyer          Purchase[] @relation("Buyer") 
-  purchasesAsSeller         Purchase[] @relation("Seller") 
-  favorites                Favorite[]
+  purchasesAsBuyer           Purchase[]        @relation("Buyer")
+  purchasesAsSeller          Purchase[]        @relation("Seller")
+  favorites                  Favorite[]
 
-  offers                Offer[]    @relation("BuyerOffers")
-  reviews               Review[]   @relation("UserReviews") 
-   tickets              SupportTicket[]
-  assignedTickets      SupportTicket[] @relation("AssignedTickets")
-  ticketMessages       TicketMessage[]
-  ticketAttachments    TicketAttachment[]
-   kycReviews           KYC[]      @relation("KycReviews")
+  offers            Offer[]            @relation("BuyerOffers")
+  reviews           Review[]           @relation("UserReviews")
+  tickets           SupportTicket[]
+  assignedTickets   SupportTicket[]    @relation("AssignedTickets")
+  ticketMessages    TicketMessage[]
+  ticketAttachments TicketAttachment[]
+  kycReviews        KYC[]              @relation("KycReviews")
 
-  requestedTours  PropertyTour[] @relation("TourRequester")
-  conductedTours  PropertyTour[] @relation("TourAgent")
+  requestedTours PropertyTour[]  @relation("TourRequester")
+  conductedTours PropertyTour[]  @relation("TourAgent")
+  Permission     Permission?     @relation(fields: [permissionId], references: [id])
+  permissionId   String?
+  role           Role?           @relation(fields: [roleId], references: [id])
+  roleId         String?
+  Notifications  Notifications[]
 }
 
 model KYC {
@@ -66,8 +70,8 @@ model KYC {
   documentUrl  String // Link to uploaded KYC document
   status       KycStatus       @default(PENDING)
   reason       String?
-  reviewerId   String?      // ID of the admin who reviewed this KYC
-  reviewer     User?        @relation("KycReviews", fields: [reviewerId], references: [id])
+  reviewerId   String? // ID of the admin who reviewed this KYC
+  reviewer     User?           @relation("KycReviews", fields: [reviewerId], references: [id])
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 }
@@ -76,11 +80,11 @@ model Property {
   id          String         @id @default(uuid())
   title       String
   description String
-  price       Decimal   
+  price       Decimal
   // @db.Decimal(10,2)
   location    String
   type        PropertyType
-  status      PropertyStatus   @default(PENDING)
+  status      PropertyStatus @default(PENDING)
   ownerId     String
   owner       User           @relation("PropertyOwner", fields: [ownerId], references: [id])
   isActive    Boolean        @default(false)
@@ -106,13 +110,13 @@ model Property {
   documents       PropertyDocument[]
   listings        Listing[]
   purchases       Purchase[]
-  tours          PropertyTour[]
-  reviews        Review[]
+  tours           PropertyTour[]
+  reviews         Review[]
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   PropertyBooking PropertyBooking[]
-   favorites                Favorite[]
-   tickets     SupportTicket[]
+  favorites       Favorite[]
+  tickets         SupportTicket[]
 }
 
 model PropertyDocument {
@@ -157,10 +161,10 @@ model Listing {
 
   rentals   RentalAgreement[]
   purchases Purchase[]
-  offers         Offer[]
-  tours          PropertyTour[]
+  offers    Offer[]
+  tours     PropertyTour[]
   bookings  PropertyBooking[]
-  tickets     SupportTicket[]
+  tickets   SupportTicket[]
 
   @@index([propertyId])
   @@index([listedById])
@@ -169,8 +173,8 @@ model Listing {
 
 model PropertyBooking {
   id              String        @id @default(uuid())
-  checkInDate       DateTime
-  checkoutDate         DateTime
+  checkInDate     DateTime
+  checkoutDate    DateTime
   requestMessage  String?
   responseMessage String?
   status          BookingStatus @default(PENDING)
@@ -217,47 +221,45 @@ model RentalAgreement {
   listingId String
   listing   Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
 
-  payments      RentalPayment[]
+  payments RentalPayment[]
 
+  @@unique([tenantId, listingId, isActive])
+  @@unique([landlordId, listingId, isActive])
   @@index([tenantId])
   @@index([landlordId])
   @@index([listingId])
   @@index([status])
-
-  @@unique([tenantId, listingId, isActive])
-@@unique([landlordId, listingId, isActive])
 }
 
 model RentalPayment {
-  id               String        @id @default(uuid())
-  amount           Decimal       @db.Decimal(10, 2)
-  dueDate          DateTime?
-  paymentDate      DateTime?
-  isPaid           Boolean       @default(false)
-  paymentMethod    String?
-  transactionId    String?       @unique
-  notes            String?       @db.Text
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  
+  id            String    @id @default(uuid())
+  amount        Decimal   @db.Decimal(10, 2)
+  dueDate       DateTime?
+  paymentDate   DateTime?
+  isPaid        Boolean   @default(false)
+  paymentMethod String?
+  transactionId String?   @unique
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
   rentalAgreementId String
   rentalAgreement   RentalAgreement @relation(fields: [rentalAgreementId], references: [id], onDelete: Cascade)
-  
+
   @@index([rentalAgreementId])
   @@index([dueDate])
   @@index([isPaid])
 }
 
-
 model Purchase {
-  id           String         @id @default(uuid())
-  purchaseDate DateTime
-  amount       Decimal        @db.Decimal(10, 2)
-  status       PurchaseStatus @default(PENDING)
-  notes        String?
-  transactionId    String?       @unique
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id            String         @id @default(uuid())
+  purchaseDate  DateTime
+  amount        Decimal        @db.Decimal(10, 2)
+  status        PurchaseStatus @default(PENDING)
+  notes         String?
+  transactionId String?        @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   listingId String
   listing   Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
@@ -266,80 +268,79 @@ model Purchase {
 
   sellerId   String
   seller     User      @relation(name: "Seller", fields: [sellerId], references: [id], onDelete: Restrict)
-  propertyId  String? 
-  property    Property? @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  propertyId String?
+  property   Property? @relation(fields: [propertyId], references: [id], onDelete: Restrict)
 
-
+  @@unique([listingId, buyerId, sellerId])
   @@index([listingId])
   @@index([buyerId])
   @@index([status])
-  @@unique([listingId, buyerId, sellerId])
 }
 
 model PropertyTour {
-  id              String        @id @default(uuid())
+  id              String     @id @default(uuid())
   scheduledDate   DateTime
-  scheduledTime    String
-  tourType        TourType      // Virtual or In-Person
-  status          TourStatus    @default(PENDING)
-  notes           String?       @db.Text
-  feedback        String?       @db.Text // For feedback after the tour
-  meetingLink     String?       // For virtual tours, store the meeting URL
-  meetingPassword String?       // Optional password for virtual meetings
-  location        String?       // For in-person tours, could be property address or specific meeting point
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
+  scheduledTime   String
+  tourType        TourType // Virtual or In-Person
+  status          TourStatus @default(PENDING)
+  notes           String?    @db.Text
+  feedback        String?    @db.Text // For feedback after the tour
+  meetingLink     String? // For virtual tours, store the meeting URL
+  meetingPassword String? // Optional password for virtual meetings
+  location        String? // For in-person tours, could be property address or specific meeting point
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
   // Relations
-  propertyId      String
-  property        Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  
-  listingId       String
-  listing         Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  
-  requestedById   String
-  requestedBy     User          @relation(name: "TourRequester", fields: [requestedById], references: [id], onDelete: Restrict)
-  
-  agentId         String?
-  agent           User?         @relation(name: "TourAgent", fields: [agentId], references: [id], onDelete: SetNull)
-  
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  requestedById String
+  requestedBy   User   @relation(name: "TourRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+
+  agentId String?
+  agent   User?   @relation(name: "TourAgent", fields: [agentId], references: [id], onDelete: SetNull)
+
+  @@unique([requestedById, propertyId])
   @@index([propertyId])
   @@index([listingId])
   @@index([requestedById])
   @@index([agentId])
   @@index([status])
   @@index([scheduledDate])
-  @@unique([requestedById, propertyId])
 }
 
 model Offer {
-  id             String   @id @default(uuid())
-  amount         Float
-  status         OfferStatus @default(PENDING)
-  message        String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
-  buyerId         String
-  buyer       User @relation(name: "BuyerOffers", fields: [buyerId], references: [id], onDelete: Restrict)
-  
-  listingId      String
-  listing        Listing  @relation(fields: [listingId], references: [id])
+  id        String      @id @default(uuid())
+  amount    Float
+  status    OfferStatus @default(PENDING)
+  message   String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  buyerId String
+  buyer   User   @relation(name: "BuyerOffers", fields: [buyerId], references: [id], onDelete: Restrict)
+
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id])
 }
 
 model Review {
-  id          String    @id @default(uuid())
-  rating      Int
-  comment     String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  userId      String
-  user        User @relation(name: "UserReviews", fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(name: "UserReviews", fields: [userId], references: [id], onDelete: Cascade)
 
-   propertyId     String
-  property       Property @relation(fields: [propertyId], references: [id])
-  
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
   @@unique([userId, propertyId])
 }
 
@@ -355,55 +356,101 @@ model Favorite {
 }
 
 model SupportTicket {
-  id             String          @id @default(uuid())
-  subject        String
-  description    String
-  status         TicketStatus    @default(OPEN)
-  priority       TicketPriority  @default(MEDIUM)
-  category       String          // e.g., "Technical Issue", "Listing Problem", "Account Help"
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  closedAt       DateTime?
-  userId         String
-  user           User            @relation(fields: [userId], references: [id])
-  
-  assignedToId   String?
-  assignedTo     User?           @relation("AssignedTickets", fields: [assignedToId], references: [id])
-  
-  propertyId  String?        // Optional: Related to a specific property
-  property    Property?      @relation(fields: [propertyId], references: [id])
+  id          String         @id @default(uuid())
+  subject     String
+  description String
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  category    String // e.g., "Technical Issue", "Listing Problem", "Account Help"
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  closedAt    DateTime?
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
 
- listingId   String?
-listing     Listing?     @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  assignedToId String?
+  assignedTo   User?   @relation("AssignedTickets", fields: [assignedToId], references: [id])
 
+  propertyId String? // Optional: Related to a specific property
+  property   Property? @relation(fields: [propertyId], references: [id])
 
-  messages       TicketMessage[]
-  attachments    TicketAttachment[]
+  listingId String?
+  listing   Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+
+  messages    TicketMessage[]
+  attachments TicketAttachment[]
 }
 
 model TicketMessage {
-  id        String    @id @default(uuid())
-  message   String
-  createdAt DateTime  @default(now())
-  isStaffReply  Boolean @default(false)
-  ticketId  String
-  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  id           String        @id @default(uuid())
+  message      String
+  createdAt    DateTime      @default(now())
+  isStaffReply Boolean       @default(false)
+  ticketId     String
+  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
 
-  userId    String
-  user      User @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model TicketAttachment {
-  id             String    @id @default(uuid())
-  filename       String
-  fileUrl        String
-  createdAt      DateTime  @default(now())
-  
-  ticketId       String
-  ticket         SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  
-  userId         String
-  user           User      @relation(fields: [userId], references: [id])
+  id        String   @id @default(uuid())
+  filename  String
+  fileUrl   String
+  createdAt DateTime @default(now())
+
+  ticketId String
+  ticket   SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Permission {
+  id             String           @id @default(uuid())
+  name           String
+  role           String
+  access         String
+  status         APP_STATUS       @default(ACTIVE)
+  RolePermission RolePermission[]
+  users          User[]
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  permissions RolePermission[]
+  users       User[]
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model Notifications {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String
+  type      String? // e.g., "ORDER_STATUS", "PROMOTION", "SYSTEM"
+  data      Json?
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum APP_STATUS {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SUSPENDED
 }
 
 enum TicketStatus {
@@ -420,7 +467,6 @@ enum TicketPriority {
   HIGH
   URGENT
 }
-
 
 enum TourType {
   VIRTUAL

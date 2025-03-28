@@ -1,5 +1,3 @@
-import { UserRole } from '@prisma/client';
-
 export interface IPaginatedUsers {
   message: string;
   data: any[];
@@ -18,7 +16,7 @@ export interface IUser {
   profileImage?: string;
   verified: boolean;
   kycVerified: boolean;
-  role: UserRole;
+  roleId?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;

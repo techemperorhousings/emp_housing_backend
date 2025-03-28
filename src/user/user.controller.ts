@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -16,9 +17,12 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { UpdateUserDto } from './dto/index.dto';
+import { Permissions } from '@decorators/permission.decorator';
+import { PermissionsGuard } from '@guards/permissions.guard';
 
 @ApiBearerAuth('JWT-auth')
 @Controller('users')
+@UseGuards(PermissionsGuard)
 export class UserController {
   constructor(private readonly service: UserService) {}
 
@@ -27,6 +31,10 @@ export class UserController {
   @ApiResponse({
     status: 200,
     description: 'User fetched successfully',
+  })
+  @Permissions({
+    name: 'BOOK_PROPERTY',
+    access: ['ADMIN', 'SELLER'],
   })
   @Get(':id/profile')
   getUser(@Param('id') userId: string) {
