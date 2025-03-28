@@ -90,7 +90,7 @@ export class UserService {
     const user = await this.prisma.user.update({
       where: { id },
       data: {
-        role: updateUserRoleDto.role,
+        roleId: updateUserRoleDto.roleId,
       },
       select: this.userObj,
     });
@@ -106,7 +106,7 @@ export class UserService {
     username: true,
     firstname: true,
     lastname: true,
-    role: true,
+    roleId: true,
     isActive: true,
     phoneNumber: true,
     profileImage: true,

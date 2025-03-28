@@ -11,6 +11,7 @@ import {
   CreateTicketAttachmentsDto,
 } from './dto/index.dto';
 import { TicketStatus, UserRole } from '@prisma/client';
+import { GET_ROLE_AND_PERMISSIONS } from '@utils';
 
 @Injectable()
 export class SupportTicketService {
@@ -156,9 +157,12 @@ export class SupportTicketService {
     // Ensure the user is staff
     const staff = await this.prisma.user.findUnique({
       where: { id: staffId },
+      include: {
+        ...GET_ROLE_AND_PERMISSIONS,
+      },
     });
 
-    if (!staff || staff.role !== UserRole.SUPPORT_STAFF) {
+    if (!staff || staff.role.name !== UserRole.SUPPORT_STAFF) {
       throw new ForbiddenException('Only staff members can reply to tickets');
     }
 
