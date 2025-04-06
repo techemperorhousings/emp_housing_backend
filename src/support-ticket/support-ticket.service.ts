@@ -10,7 +10,7 @@ import {
   CreateTicketMessageDto,
   CreateTicketAttachmentsDto,
 } from './dto/index.dto';
-import { TicketStatus, UserRole } from '@prisma/client';
+import { TicketStatus } from '@prisma/client';
 import { GET_ROLE_AND_PERMISSIONS } from '@utils';
 
 @Injectable()
@@ -162,9 +162,9 @@ export class SupportTicketService {
       },
     });
 
-    if (!staff || staff.role.name !== UserRole.SUPPORT_STAFF) {
-      throw new ForbiddenException('Only staff members can reply to tickets');
-    }
+    // if (!staff || staff.role.name !== UserRole.SUPPORT_STAFF) {
+    //   throw new ForbiddenException('Only staff members can reply to tickets');
+    // }
 
     // Create a staff reply message
     const new_message = await this.prisma.ticketMessage.create({
