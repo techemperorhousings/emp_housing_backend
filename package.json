@@ -41,7 +41,7 @@
     "argon2": "^0.41.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
-    "cloudinary": "^2.5.1",
+    "cloudinary": "^1.41.3",
     "date-fns": "^4.1.0",
     "express-basic-auth": "^1.2.1",
     "multer": "1.4.5-lts.1",
