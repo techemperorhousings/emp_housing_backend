@@ -10,6 +10,7 @@ enum AccessLevel {
   BUYER = 'BUYER',
   SUPPORT_STAFF = 'SUPPORT_STAFF',
 }
+const newFunc = () => {};
 
 export type ACCESS_LEVEL = keyof typeof AccessLevel;
 
