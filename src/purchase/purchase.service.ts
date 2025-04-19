@@ -1,17 +1,18 @@
+import { PaginatedResponse } from '@utils/pagination';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { CreatePurchaseDto } from './dto/index.dto';
-import { PropertyStatus, PurchaseStatus } from '@prisma/client';
+import { CreatePurchaseDto, FilterDto } from './dto/index.dto';
+import { PropertyStatus, Purchase, PurchaseStatus } from '@prisma/client';
 
 @Injectable()
 export class PurchaseService {
   constructor(private prisma: PrismaService) {}
 
-  async create(dto: CreatePurchaseDto) {
+  async create(dto: CreatePurchaseDto): Promise<Purchase> {
     const { listingId, buyerId, sellerId, purchaseDate } = dto;
 
     const listing = await this.prisma.listing.findUnique({
@@ -30,7 +31,7 @@ export class PurchaseService {
       throw new NotFoundException('Listing not available for sale.');
     }
 
-    const purchase = await this.prisma.purchase.create({
+    return await this.prisma.purchase.create({
       data: {
         ...dto,
         purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
@@ -58,69 +59,72 @@ export class PurchaseService {
         },
       },
     });
+  }
+
+  async getAllPurchases(
+    filterDto: FilterDto,
+  ): Promise<PaginatedResponse<Purchase>> {
+    const { skip, take, status } = filterDto;
+
+    const where: any = {};
+    if (status) {
+      where.status = status;
+    }
+
+    const [payments, total] = await Promise.all([
+      this.prisma.purchase.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          buyer: {
+            select: { id: true, firstname: true, lastname: true },
+          },
+          seller: {
+            select: { id: true, firstname: true, lastname: true },
+          },
+          property: {
+            select: { id: true, title: true },
+          },
+        },
+      }),
+      this.prisma.rentalPayment.count(),
+    ]);
 
     return {
-      message: 'Purchase created successfully',
-      data: purchase,
+      data: payments,
+      take,
+      skip,
+      total,
     };
   }
 
-  async findAll() {
-    const purchases = await this.prisma.purchase.findMany({
-      include: {
-        property: true,
-        buyer: {
-          select: {
-            firstname: true,
-            lastname: true,
-            email: true,
-          },
-        },
-        seller: {
-          select: {
-            firstname: true,
-            lastname: true,
-            email: true,
-          },
-        },
-      },
-    });
-    return {
-      message: 'Purchases fetched successfully',
-      data: purchases,
-    };
-  }
-
-  async findOne(id: string) {
+  //get purchase by id
+  async getPurchaseById(purchaseId: string): Promise<Purchase> {
     const purchase = await this.prisma.purchase.findUnique({
-      where: { id },
+      where: { id: purchaseId },
       include: {
-        property: true,
         buyer: {
-          select: {
-            firstname: true,
-            lastname: true,
-            email: true,
-          },
+          select: { id: true, firstname: true, lastname: true },
         },
         seller: {
-          select: {
-            firstname: true,
-            lastname: true,
-            email: true,
-          },
+          select: { id: true, firstname: true, lastname: true },
+        },
+        property: {
+          select: { id: true, title: true },
         },
       },
     });
-    if (!purchase) throw new NotFoundException('Purchase not found');
-    return {
-      message: 'Purchase fetched successfully',
-      data: purchase,
-    };
+    if (!purchase) {
+      throw new NotFoundException('Purchase record not found');
+    }
+
+    return purchase;
   }
 
-  async findUserPurchases(userId: string) {
-    const purchases = await this.prisma.purchase.findMany({
+  async findUserPurchases(userId: string): Promise<Purchase[]> {
+    return await this.prisma.purchase.findMany({
       where: { OR: [{ buyerId: userId }, { sellerId: userId }] },
       include: {
         property: true,
@@ -140,13 +144,16 @@ export class PurchaseService {
         },
       },
     });
-    return {
-      message: 'Purchases fetched successfully',
-      data: purchases,
-    };
   }
 
-  async update({ id, status }: { id: string; status: PurchaseStatus }) {
+  //update purchase status
+  async updateStatus({
+    id,
+    status,
+  }: {
+    id: string;
+    status: PurchaseStatus;
+  }): Promise<Purchase> {
     const purchase = await this.prisma.purchase.findUnique({
       where: { id },
       include: {
@@ -166,7 +173,7 @@ export class PurchaseService {
       });
     }
 
-    const updated_purchase = await this.prisma.purchase.update({
+    return await this.prisma.purchase.update({
       where: { id },
       data: { status },
       include: {
@@ -186,10 +193,5 @@ export class PurchaseService {
         },
       },
     });
-
-    return {
-      message: 'Purchase status updated successfully',
-      data: updated_purchase,
-    };
   }
 }

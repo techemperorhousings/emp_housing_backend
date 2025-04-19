@@ -26,7 +26,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     // Extract the error message(s) from the exception
     let message = exception.message || 'Unexpected error';
-    let errorResponse = exception.getResponse();
+    const errorResponse = exception.getResponse();
 
     // Handle BadRequestException with DTO validation errors
     if (exception instanceof BadRequestException) {
@@ -36,6 +36,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       if (Array.isArray(validationErrors)) {
         message = this.formatValidationErrors(validationErrors);
       }
+    } else if (exception instanceof Error) {
+      message = exception.message;
     }
 
     // Structured logging for better monitoring
