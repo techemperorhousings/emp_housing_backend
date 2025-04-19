@@ -7,11 +7,16 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import { OfferService } from './offer.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateOfferDto, UpdateOfferStatusDto } from './dto/index.dto';
+import {
+  CreateOfferDto,
+  FilterDto,
+  UpdateOfferStatusDto,
+} from './dto/index.dto';
 
 @ApiTags('Offers')
 @ApiBearerAuth('JWT-auth')
@@ -23,35 +28,66 @@ export class OfferController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Make an offer on a  property listing' })
   async createOffer(@Body() dto: CreateOfferDto) {
-    return this.service.createOffer(dto);
+    const offer = await this.service.createOffer(dto);
+    return {
+      message: 'Offer created successfully',
+      ...offer,
+    };
+  }
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all offers with pagination' })
+  async getAllOffers(@Query() query: FilterDto) {
+    const offers = await this.service.getAllOffers(query);
+    return {
+      message: 'Offers fetched successfully',
+      ...offers,
+    };
   }
 
   @Get('user')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get user offers' })
   async getOffersByBuyer(@Req() req) {
-    return this.service.getuserOffers(req.user.id);
+    const offers = await this.service.getuserOffers(req.user.id);
+    return {
+      message: 'User offers fetched successfully',
+      ...offers,
+    };
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get specific order details' })
   async getOfferById(@Param('id') id: string) {
-    return this.service.getOfferById(id);
+    const offer = await this.service.getOfferById(id);
+    return {
+      message: 'Offer fetched successfully',
+      ...offer,
+    };
   }
 
   @Get('listing/:listingId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all offers for a specific listing' })
   async getOffersByListing(@Param('listingId') listingId: string) {
-    return this.service.getOffersByListing(listingId);
+    const offers = await this.service.getOffersByListing(listingId);
+    return {
+      message: 'Offers fetched successfully',
+      data: offers,
+    };
   }
 
   @Patch(':id/withdraw')
   @ApiOperation({ summary: 'Withdraw an offer' })
   async deleteOffer(@Param('id') id: string, @Req() req) {
     const userId = req.user.id;
-    return this.service.withdrawOffer({ id, userId });
+    const offer = await this.service.withdrawOffer({ id, userId });
+    return {
+      message: 'Offer withdrawn successfully',
+      ...offer,
+    };
   }
 
   @Patch(':id/status/:status')
@@ -61,6 +97,10 @@ export class OfferController {
   })
   async updateOffer(@Param() param: UpdateOfferStatusDto) {
     const { id, status } = param;
-    return this.service.updateOfferStatus(id, status);
+    const offer = await this.service.updateOfferStatus(id, status);
+    return {
+      message: 'Offer status updated successfully',
+      ...offer,
+    };
   }
 }

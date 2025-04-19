@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { CreateRentalPaymentDto } from './dto/index.dto';
+import { PaginatedResponse, PaginationQueryDto } from '@utils/pagination';
+import { RentalPayment } from '@prisma/client';
 
 @Injectable()
 export class RentalPaymentService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async makePayment(dto: CreateRentalPaymentDto) {
+  async makePayment(dto: CreateRentalPaymentDto): Promise<RentalPayment> {
     // Ensure the rental agreement exists
     const rentalAgreement = await this.prisma.rentalAgreement.findUnique({
       where: { id: dto.rentalAgreementId },
@@ -31,13 +33,33 @@ export class RentalPaymentService {
       data: { isPaid: true },
     });
 
+    return payment;
+  }
+
+  async getAllPayments(
+    paginationDto: PaginationQueryDto,
+  ): Promise<PaginatedResponse<RentalPayment>> {
+    const { skip, take } = paginationDto;
+
+    const [payments, total] = await Promise.all([
+      this.prisma.rentalPayment.findMany({
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: this.includeObj,
+      }),
+      this.prisma.rentalPayment.count(),
+    ]);
+
     return {
-      message: 'Rental Payment created successfully',
-      data: payment,
+      data: payments,
+      take,
+      skip,
+      total,
     };
   }
 
-  async getPaymentById(id: string) {
+  async getPaymentById(id: string): Promise<RentalPayment> {
     const payment = await this.prisma.rentalPayment.findUnique({
       where: { id },
       include: { rentalAgreement: true },
@@ -47,14 +69,11 @@ export class RentalPaymentService {
       throw new NotFoundException('Rental Payment not found.');
     }
 
-    return {
-      message: 'Rental Payment fetched successfully',
-      data: payment,
-    };
+    return payment;
   }
 
-  async getUserPayments(userId: string) {
-    const payments = await this.prisma.rentalPayment.findMany({
+  async getUserPayments(userId: string): Promise<RentalPayment[]> {
+    return await this.prisma.rentalPayment.findMany({
       where: {
         rentalAgreement: {
           OR: [{ landlordId: userId }, { tenantId: userId }],
@@ -70,15 +89,10 @@ export class RentalPaymentService {
         },
       },
     });
-
-    return {
-      message: 'User payments fetched successfully',
-      data: payments,
-    };
   }
 
-  async getPropertyPayments(propertyId: string) {
-    const payments = await this.prisma.rentalPayment.findMany({
+  async getPropertyPayments(propertyId: string): Promise<RentalPayment[]> {
+    return await this.prisma.rentalPayment.findMany({
       where: {
         rentalAgreement: {
           listing: {
@@ -86,28 +100,23 @@ export class RentalPaymentService {
           },
         },
       },
+      include: this.includeObj,
+    });
+  }
+
+  includeObj = {
+    rentalAgreement: {
       include: {
-        rentalAgreement: {
-          include: {
-            listing: {
-              select: {
-                property: {
-                  select: {
-                    title: true,
-                  },
-                },
-              },
-            },
-            landlord: { select: { id: true, firstname: true, lastname: true } },
-            tenant: { select: { id: true, firstname: true, lastname: true } },
+        tenant: { select: { id: true, firstname: true, lastname: true } },
+        landlord: {
+          select: { id: true, firstname: true, lastname: true },
+        },
+        listing: {
+          select: {
+            property: { select: { title: true } },
           },
         },
       },
-    });
-
-    return {
-      message: 'Payments for property rentals fetched successfully',
-      data: payments,
-    };
-  }
+    },
+  };
 }

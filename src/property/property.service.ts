@@ -7,13 +7,20 @@ import {
   PropertyImageDto,
   UpdatePropertyDto,
 } from './dto/index.dto';
-import { PaginationQueryDto } from '@utils/pagination.dto';
+import { PaginatedResponse, PaginationQueryDto } from '@utils/pagination';
+import {
+  Feature,
+  Property,
+  PropertyDocument,
+  PropertyImage,
+  PropertyStatus,
+} from '@prisma/client';
 
 @Injectable()
 export class PropertyService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createProperty(body: CreatePropertyDto) {
+  async createProperty(body: CreatePropertyDto): Promise<Property> {
     const { ownerId, features, images, documents, ...propertyData } = body;
 
     // Check if owner exists
@@ -37,15 +44,15 @@ export class PropertyService {
     await this.createImages(newProperty.id, images);
     await this.createDocuments(newProperty.id, documents);
 
-    return {
-      message: 'Property created successfully',
-      data: newProperty,
-    };
+    return newProperty;
   }
 
-  async createFeatures(propertyId: string, features: FeatureDto[]) {
+  async createFeatures(
+    propertyId: string,
+    features: FeatureDto[],
+  ): Promise<Feature[]> {
     if (!features?.length) return;
-    const newFeatures = await this.prisma.feature.createMany({
+    await this.prisma.feature.createMany({
       data: features.map((feature) => ({
         propertyId,
         name: feature.name,
@@ -53,43 +60,52 @@ export class PropertyService {
         description: feature.description,
       })),
     });
-    return {
-      message: 'Features created successfully',
-      data: newFeatures,
-    };
+    const propFeatures = await this.prisma.feature.findMany({
+      where: { propertyId },
+    });
+    return propFeatures;
   }
 
-  async createImages(propertyId: string, images: PropertyImageDto[]) {
+  async createImages(
+    propertyId: string,
+    images: PropertyImageDto[],
+  ): Promise<PropertyImage[]> {
     if (!images?.length) return;
-    const new_images = await this.prisma.propertyImage.createMany({
+    await this.prisma.propertyImage.createMany({
       data: images.map((image) => ({
         propertyId,
         url: image.url,
         isFeatured: image.isFeatured,
       })),
     });
-    return {
-      message: 'Images created successfully',
-      data: new_images,
-    };
+    const propImages = await this.prisma.propertyImage.findMany({
+      where: { propertyId },
+    });
+    return propImages;
   }
 
-  async createDocuments(propertyId: string, documents?: PropertyDocumentDto[]) {
+  async createDocuments(
+    propertyId: string,
+    documents?: PropertyDocumentDto[],
+  ): Promise<PropertyDocument[]> {
     if (!documents?.length) return;
-    const newDoc = await this.prisma.propertyDocument.createMany({
+    await this.prisma.propertyDocument.createMany({
       data: documents.map((document) => ({
         propertyId,
         url: document.url,
         name: document.name,
       })),
     });
-    return {
-      message: 'Documents created successfully',
-      data: newDoc,
-    };
+    const propDocs = await this.prisma.propertyDocument.findMany({
+      where: { propertyId },
+    });
+    return propDocs;
   }
 
-  async findAll(pagination: PaginationQueryDto, filters?: any) {
+  async findAll(
+    pagination: PaginationQueryDto,
+    filters?: any,
+  ): Promise<PaginatedResponse<Property>> {
     const { skip, take } = pagination;
 
     // Prepare the where clause with text search capabilities
@@ -120,7 +136,6 @@ export class PropertyService {
     ]);
 
     return {
-      message: 'Properties fetched successfully',
       data: properties,
       total,
       skip,
@@ -128,19 +143,19 @@ export class PropertyService {
     };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Property> {
     const property = await this.prisma.property.findUnique({
       where: { id },
       include: { features: true, images: true },
     });
     if (!property) throw new NotFoundException('Property not found');
-    return {
-      message: 'Property fetched successfully',
-      data: property,
-    };
+    return property;
   }
 
-  async findAllByUser(userId: string, pagination: PaginationQueryDto) {
+  async findAllByUser(
+    userId: string,
+    pagination: PaginationQueryDto,
+  ): Promise<PaginatedResponse<Property>> {
     const { skip, take } = pagination;
 
     const [properties, total] = await Promise.all([
@@ -154,7 +169,6 @@ export class PropertyService {
     ]);
 
     return {
-      message: 'Properties fetched successfully',
       data: properties,
       total,
       skip,
@@ -162,40 +176,28 @@ export class PropertyService {
     };
   }
 
-  async search(query: string, pagination) {
-    const { skip, take } = pagination;
-
-    const [properties, total] = await Promise.all([
-      this.prisma.property.findMany({
-        where: {
-          OR: [
-            { title: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } },
-            { location: { contains: query, mode: 'insensitive' } },
-            { city: { contains: query, mode: 'insensitive' } },
-            { state: { contains: query, mode: 'insensitive' } },
-            { zipCode: { contains: query, mode: 'insensitive' } },
-            { country: { contains: query, mode: 'insensitive' } },
-            { address: { contains: query, mode: 'insensitive' } },
-          ],
-        },
-        include: { features: true, images: true },
-      }),
-      this.prisma.property.count(),
-    ]);
-    return {
-      message: 'Properties fetched successfully',
-      data: properties,
-      total,
-      skip,
-      take,
-    };
+  async search(query: string): Promise<Property[]> {
+    return await this.prisma.property.findMany({
+      where: {
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+          { location: { contains: query, mode: 'insensitive' } },
+          { city: { contains: query, mode: 'insensitive' } },
+          { state: { contains: query, mode: 'insensitive' } },
+          { zipCode: { contains: query, mode: 'insensitive' } },
+          { country: { contains: query, mode: 'insensitive' } },
+          { address: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      include: { features: true, images: true },
+    });
   }
 
-  async updateProperty(id: string, dto: UpdatePropertyDto) {
+  async updateProperty(id: string, dto: UpdatePropertyDto): Promise<Property> {
     await this.findOne(id);
 
-    const property = await this.prisma.property.update({
+    return await this.prisma.property.update({
       where: { id },
       data: {
         ...dto,
@@ -232,19 +234,11 @@ export class PropertyService {
       },
       include: { features: true, images: true, documents: true }, // Ensure documents are included in response
     });
-
-    return {
-      message: 'Property updated successfully',
-      data: property,
-    };
   }
 
   async deleteProperty(id: string) {
     await this.findOne(id);
-    await this.prisma.property.delete({ where: { id } });
-    return {
-      message: 'Property deleted successfully',
-    };
+    return await this.prisma.property.delete({ where: { id } });
   }
 
   //remove property image
@@ -254,10 +248,9 @@ export class PropertyService {
     });
     if (!propertyImage) throw new NotFoundException('Property image not found');
 
-    await this.prisma.propertyImage.delete({ where: { id: imageId } });
-    return {
-      message: 'Property image deleted successfully',
-    };
+    await this.prisma.propertyImage.delete({
+      where: { id: imageId, propertyId },
+    });
   }
 
   //remove property document
@@ -279,21 +272,16 @@ export class PropertyService {
     propertyId: string,
     featureId: string,
     feature: FeatureDto,
-  ) {
+  ): Promise<Feature> {
     const existingFeature = await this.prisma.feature.findUnique({
       where: { id: featureId, propertyId },
     });
     if (!existingFeature) throw new NotFoundException('Feature not found');
 
-    const new_feature = await this.prisma.feature.update({
+    return await this.prisma.feature.update({
       where: { id: featureId },
       data: feature,
     });
-
-    return {
-      message: 'Feature updated successfully',
-      data: new_feature,
-    };
   }
 
   async deleteFeature(propertyId: string, featureId: string) {
@@ -306,5 +294,18 @@ export class PropertyService {
     return {
       message: 'Feature deleted successfully',
     };
+  }
+
+  //update property status
+  async updatePropertyStatus(
+    id: string,
+    status: PropertyStatus,
+  ): Promise<Property> {
+    await this.findOne(id);
+
+    return await this.prisma.property.update({
+      where: { id },
+      data: { status },
+    });
   }
 }

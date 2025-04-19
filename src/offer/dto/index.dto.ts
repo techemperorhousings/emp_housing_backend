@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEnum,
   IsNotEmpty,
@@ -9,6 +9,7 @@ import {
   Min,
 } from 'class-validator';
 import { OfferStatus } from '@prisma/client';
+import { PaginationQueryDto } from '@utils/pagination';
 
 export class CreateOfferDto {
   @ApiProperty({ example: 500000, description: 'Offer amount in currency' })
@@ -59,5 +60,15 @@ export class UpdateOfferStatusDto {
   })
   @IsEnum(OfferStatus)
   @IsNotEmpty()
+  status: OfferStatus;
+}
+
+export class FilterDto extends PaginationQueryDto {
+  @ApiPropertyOptional({
+    enum: OfferStatus,
+    description: 'Filter by offer status',
+  })
+  @IsOptional()
+  @IsEnum(OfferStatus)
   status: OfferStatus;
 }

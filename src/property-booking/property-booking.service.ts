@@ -6,13 +6,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { CreatePropertyBookingDto } from './dto/index.dto';
+import { BookingFilterDto, CreatePropertyBookingDto } from './dto/index.dto';
+import { BookingStatus, Prisma, PropertyBooking } from '@prisma/client';
+import { PaginatedResponse } from '@utils/pagination';
 
 @Injectable()
 export class PropertyBookingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createBooking(dto: CreatePropertyBookingDto) {
+  async createBooking(dto: CreatePropertyBookingDto): Promise<PropertyBooking> {
     const checkInDate = new Date(dto.checkInDate);
     const checkoutDate = new Date(dto.checkoutDate);
     const today = new Date();
@@ -64,7 +66,7 @@ export class PropertyBookingService {
     }
 
     // Create a new booking
-    const newBooking = await this.prisma.propertyBooking.create({
+    return await this.prisma.propertyBooking.create({
       data: {
         ...dto,
         checkInDate,
@@ -72,10 +74,54 @@ export class PropertyBookingService {
         propertyId: listing.propertyId,
       },
     });
+  }
+
+  async getAllBookings(
+    filterDto: BookingFilterDto,
+  ): Promise<PaginatedResponse<PropertyBooking>> {
+    const {
+      skip,
+      take,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      status,
+      propertyId,
+      userId,
+      listingId,
+    } = filterDto;
+
+    // Build where condition for filtering
+
+    const where: Prisma.PropertyBookingWhereInput = {
+      ...(status && { status }),
+      ...(propertyId && { propertyId }),
+      ...(userId && { userId }),
+      ...(listingId && { listingId }),
+    };
+
+    const [bookings, total] = await Promise.all([
+      this.prisma.propertyBooking.findMany({
+        where,
+        skip,
+        take,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        include: {
+          property: { select: { id: true, address: true } },
+          user: {
+            select: { id: true, firstname: true, lastname: true, email: true },
+          },
+        },
+      }),
+      this.prisma.propertyBooking.count({ where }),
+    ]);
 
     return {
-      message: 'Booking created successfully',
-      data: newBooking,
+      data: bookings,
+      total,
+      take,
+      skip,
     };
   }
 
@@ -89,31 +135,20 @@ export class PropertyBookingService {
       throw new NotFoundException('Booking not found.');
     }
 
-    return {
-      message: 'Booking fetched successfully',
-      data: booking,
-    };
+    return booking;
   }
 
   async getBookingsByUser(userId: string) {
-    const bookings = await this.prisma.propertyBooking.findMany({
+    return await this.prisma.propertyBooking.findMany({
       where: { userId },
       include: { property: true, listing: true },
     });
-    return {
-      message: 'User Bookings fetched successfully',
-      data: bookings,
-    };
   }
 
   async getBookingsByProperty(propertyId: string) {
-    const bookings = await this.prisma.propertyBooking.findMany({
+    return await this.prisma.propertyBooking.findMany({
       where: { propertyId },
     });
-    return {
-      message: 'Property Bookings fetched successfully',
-      data: bookings,
-    };
   }
 
   //cancel booking
@@ -122,24 +157,19 @@ export class PropertyBookingService {
     const booking = await this.getBookingById(id);
 
     // Check if booking status is pending
-    if (booking.data.status !== 'PENDING') {
+    if (booking.status !== 'PENDING') {
       throw new ForbiddenException(
         'Only bookings with pending status can be canceled',
       );
     }
 
     // Update the booking status to canceled
-    const updatedBooking = await this.prisma.propertyBooking.update({
+    return await this.prisma.propertyBooking.update({
       where: { id },
       data: {
         status: 'CANCELLED',
       },
     });
-
-    return {
-      message: 'Booking canceled successfully',
-      data: updatedBooking,
-    };
   }
 
   //approve a booking request
@@ -148,23 +178,18 @@ export class PropertyBookingService {
     const booking = await this.getBookingById(id);
 
     // Check if booking status is pending
-    if (booking.data.status !== 'PENDING') {
+    if (booking.status !== 'PENDING') {
       throw new ForbiddenException('Only pending bookings can be approved');
     }
 
     // Update the booking status to approved
-    const updatedBooking = await this.prisma.propertyBooking.update({
+    return await this.prisma.propertyBooking.update({
       where: { id },
       data: {
         status: 'APPROVED',
         responseMessage,
       },
     });
-
-    return {
-      message: 'Booking approved successfully',
-      data: updatedBooking,
-    };
   }
 
   // deny a booking request
@@ -173,24 +198,31 @@ export class PropertyBookingService {
     const booking = await this.getBookingById(id);
 
     // Check if booking status is pending
-    if (booking.data.status !== 'PENDING') {
+    if (booking.status !== 'PENDING') {
       throw new ForbiddenException(
         'Only bookings with requested status can be denied',
       );
     }
 
     // Update the booking status to denied
-    const updatedBooking = await this.prisma.propertyBooking.update({
+    return await this.prisma.propertyBooking.update({
       where: { id },
       data: {
         status: 'REJECTED',
         responseMessage,
       },
     });
+  }
 
-    return {
-      message: 'Booking denied successfully',
-      data: updatedBooking,
-    };
+  //change booking status
+  async updateBookingStatus(
+    id: string,
+    status: BookingStatus,
+    responseMessage?: string,
+  ) {
+    return await this.prisma.propertyBooking.update({
+      where: { id },
+      data: { status, responseMessage },
+    });
   }
 }

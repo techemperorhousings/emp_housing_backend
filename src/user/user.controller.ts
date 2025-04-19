@@ -6,8 +6,8 @@ import {
   HttpStatus,
   Param,
   Patch,
+  Query,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -16,25 +16,30 @@ import {
   ApiResponse,
   ApiBody,
 } from '@nestjs/swagger';
-import { UpdateUserDto } from './dto/index.dto';
-import { Permissions } from '@decorators/permission.decorator';
-import { PermissionsGuard } from '@guards/permissions.guard';
+import {
+  UpdateUserDto,
+  UpdateUserRoleDto,
+  UpdateUserStatusDto,
+} from './dto/index.dto';
+import { PaginationQueryDto } from '@utils/pagination';
 
 @ApiBearerAuth('JWT-auth')
 @Controller('users')
-@UseGuards(PermissionsGuard)
 export class UserController {
   constructor(private readonly service: UserService) {}
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all users with pagination' })
+  async findAll(@Query() query: PaginationQueryDto) {
+    return this.service.findAll(query);
+  }
 
   @ApiOperation({ summary: 'Get user Profile' })
   @HttpCode(HttpStatus.OK)
   @ApiResponse({
     status: 200,
     description: 'User fetched successfully',
-  })
-  @Permissions({
-    name: 'BOOK_PROPERTY',
-    access: ['ADMIN', 'SELLER'],
   })
   @Get(':id/profile')
   getUser(@Param('id') userId: string) {
@@ -65,5 +70,24 @@ export class UserController {
   @Patch(':id/picture')
   updateProfilePicture(@Req() req, @Body('pictureUrl') pictureUrl: string) {
     return this.service.updateProfilePicture(req.user.id, pictureUrl);
+  }
+
+  @Patch(':id/status')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Activate or deactivate user' })
+  async updateUserStatus(
+    @Param('id') id: string,
+    @Body() updateUserStatusDto: UpdateUserStatusDto,
+  ) {
+    return this.service.updateUserStatus(id, updateUserStatusDto);
+  }
+
+  @Patch(':id/role')
+  @ApiOperation({ summary: 'Change user role' })
+  async updateUserRole(
+    @Param('id') id: string,
+    @Body() updateUserRoleDto: UpdateUserRoleDto,
+  ) {
+    return this.service.updateUserRole(id, updateUserRoleDto);
   }
 }

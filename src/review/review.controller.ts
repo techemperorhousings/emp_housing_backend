@@ -24,27 +24,64 @@ export class ReviewController {
   @ApiOperation({ summary: 'Add review for a property' })
   async createReview(@Body() dto: CreateReviewDto, @Req() req) {
     const userId = req.user.id;
-    return this.service.createReview(dto, userId);
+    const review = await this.service.createReview(dto, userId);
+    return {
+      message: 'Review created successfully',
+      ...review,
+    };
+  }
+
+  @ApiOperation({
+    summary: 'Get all reviews',
+  })
+  @Get()
+  async getAllReviews() {
+    const reviews = await this.service.getAllReviews();
+    return {
+      message: 'Reviews fetched successfully',
+      ...reviews,
+    };
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get a review by ID' })
   async getReviewById(@Param('id') id: string) {
-    return this.service.getReviewById(id);
+    const review = await this.service.getReviewById(id);
+    return {
+      message: 'Review fetched successfully',
+      ...review,
+    };
   }
 
   @Get('property/:propertyId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all reviews for a specific property' })
   async getReviewsByProperty(@Param('propertyId') propertyId: string) {
-    return this.service.getReviewsForProperty(propertyId);
+    const reviews = await this.service.getReviewsForProperty(propertyId);
+    return {
+      message: 'Property reviews fetched successfully',
+      ...reviews,
+    };
   }
 
-  @Delete(':id')
+  @Delete(':id/user')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete own review' })
-  async deleteReview(@Param('id') id: string, @Req() req) {
-    return this.service.deleteOwnReview(id, req.user.id);
+  async deleteUserReview(@Param('id') id: string, @Req() req) {
+    await this.service.deleteOwnReview(id, req.user.id);
+    return {
+      message: 'Review deleted successfully',
+    };
+  }
+
+  //delete a review
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a review' })
+  async deleteReview(@Param('id') reviewId: string) {
+    await this.service.deleteReview(reviewId);
+    return {
+      message: 'Review deleted successfully',
+    };
   }
 }
