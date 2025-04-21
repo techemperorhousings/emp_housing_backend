@@ -18,6 +18,7 @@ import { RentalPaymentModule } from '@rental-payment/rental-payment.module';
 import { ReviewModule } from '@review/review.module';
 import { SupportTicketModule } from '@support-ticket/support-ticket.module';
 import { ChatModule } from '@chat/chat.module';
+import { PusherModule } from '@pusher/pusher.module';
 // import { ChatModule } from '@chat/chat.module';
 
 export const modules = [
@@ -45,4 +46,5 @@ export const modules = [
   FavoriteModule,
   SupportTicketModule,
   ChatModule,
+  PusherModule,
 ];
