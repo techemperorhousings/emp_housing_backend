@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import { setupSwagger } from '@setupSwagger';
 import { PrismaExceptionFilter } from '@exception-filters/prisma-exception.filter';
 import { HttpExceptionFilter } from '@exception-filters/http-exception.filter';
+import { ResponseFormatInterceptor } from '@interceptors/response-format.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -34,6 +35,8 @@ async function bootstrap() {
   );
 
   setupSwagger(app);
+
+  app.useGlobalInterceptors(new ResponseFormatInterceptor());
 
   app.useGlobalFilters(new HttpExceptionFilter(), new PrismaExceptionFilter());
 
