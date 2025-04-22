@@ -45,15 +45,13 @@ export class PurchaseService {
         listing: true,
         buyer: {
           select: {
-            firstname: true,
-            lastname: true,
+            fullname: true,
             email: true,
           },
         },
         seller: {
           select: {
-            firstname: true,
-            lastname: true,
+            fullname: true,
             email: true,
           },
         },
@@ -79,10 +77,10 @@ export class PurchaseService {
         orderBy: { createdAt: 'desc' },
         include: {
           buyer: {
-            select: { id: true, firstname: true, lastname: true },
+            select: { id: true, fullname: true },
           },
           seller: {
-            select: { id: true, firstname: true, lastname: true },
+            select: { id: true, fullname: true },
           },
           property: {
             select: { id: true, title: true },
@@ -106,10 +104,10 @@ export class PurchaseService {
       where: { id: purchaseId },
       include: {
         buyer: {
-          select: { id: true, firstname: true, lastname: true },
+          select: { id: true, fullname: true },
         },
         seller: {
-          select: { id: true, firstname: true, lastname: true },
+          select: { id: true, fullname: true },
         },
         property: {
           select: { id: true, title: true },
@@ -130,15 +128,13 @@ export class PurchaseService {
         property: true,
         buyer: {
           select: {
-            firstname: true,
-            lastname: true,
+            fullname: true,
             email: true,
           },
         },
         seller: {
           select: {
-            firstname: true,
-            lastname: true,
+            fullname: true,
             email: true,
           },
         },
@@ -179,15 +175,13 @@ export class PurchaseService {
       include: {
         buyer: {
           select: {
-            firstname: true,
-            lastname: true,
+            fullname: true,
             email: true,
           },
         },
         seller: {
           select: {
-            firstname: true,
-            lastname: true,
+            fullname: true,
             email: true,
           },
         },

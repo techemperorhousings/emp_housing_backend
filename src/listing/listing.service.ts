@@ -47,9 +47,7 @@ export class ListingService {
         property: true,
         listedBy: {
           select: {
-            username: true,
-            firstname: true,
-            lastname: true,
+            fullname: true,
             email: true,
           },
         },
@@ -84,9 +82,7 @@ export class ListingService {
           property: true,
           listedBy: {
             select: {
-              username: true,
-              firstname: true,
-              lastname: true,
+              fullname: true,
               email: true,
             },
           },

@@ -110,7 +110,7 @@ export class PropertyBookingService {
         include: {
           property: { select: { id: true, address: true } },
           user: {
-            select: { id: true, firstname: true, lastname: true, email: true },
+            select: { id: true, fullname: true, email: true },
           },
         },
       }),
