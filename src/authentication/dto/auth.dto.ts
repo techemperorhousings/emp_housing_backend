@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 
 export class AuthDto {
   @ApiProperty({
@@ -27,22 +33,33 @@ export class AuthDto {
 
   @ApiProperty({
     description: 'Password',
-    example: 'password',
+    example: 'P@ssword123',
   })
   @IsString()
   @IsNotEmpty()
   @MaxLength(60)
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,60}$/,
+    {
+      message:
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+    },
+  )
   readonly password: string;
 
   @ApiProperty({
     description: 'Profile Image Url',
     example: 'https://example.com/image.jpg',
   })
+  @IsNotEmpty()
+  @IsString()
   readonly profileImage: string;
 
   @ApiProperty({
     description: 'Role ID',
     example: '1234567890abcdef12345678',
   })
+  @IsNotEmpty()
+  @IsString()
   readonly roleId: string;
 }
