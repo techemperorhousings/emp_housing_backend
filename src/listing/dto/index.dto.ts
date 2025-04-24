@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ListingStatus, ListingType } from '@prisma/client';
-import { PaginationQueryDto } from '@utils/pagination.dto';
+import { PaginationQueryDto } from '@utils/pagination';
 import {
   IsUUID,
   IsNumber,

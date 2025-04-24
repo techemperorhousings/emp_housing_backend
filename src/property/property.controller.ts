@@ -18,11 +18,12 @@ import {
   CreatePropertyDto,
   FeatureDto,
   PropertyFilterDto,
+  PropertyStatusDto,
   UpdatePropertyDto,
 } from './dto/index.dto';
 import { OwnerResource, Public } from '@decorators/index.decorator';
 import { OwnerGuard } from '@guards/owner.guard';
-import { PaginationQueryDto } from '@utils/pagination.dto';
+import { PaginationQueryDto } from '@utils/pagination';
 
 @ApiTags('Properties')
 @ApiBearerAuth('JWT-auth')
@@ -34,14 +35,38 @@ export class PropertyController {
   @ApiOperation({ summary: 'Create a new property' })
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createPropertyDto: CreatePropertyDto) {
-    return this.propertyService.createProperty(createPropertyDto);
+    const property =
+      await this.propertyService.createProperty(createPropertyDto);
+    return {
+      message: 'Property created successfully',
+      ...property,
+    };
   }
 
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all properties with optional filters' })
   async findAll(@Query() filters: PropertyFilterDto) {
-    return this.propertyService.findAll(filters);
+    const properties = await this.propertyService.findAll(filters);
+    return {
+      message: 'Properties fetched successfully',
+      ...properties,
+    };
+  }
+
+  @Patch(':id/status/:status')
+  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.OK)
+  async updateStatus(@Param() param: PropertyStatusDto) {
+    const { id, status } = param;
+    const property = await this.propertyService.updatePropertyStatus(
+      id,
+      status,
+    );
+    return {
+      message: 'Property status updated successfully',
+      ...property,
+    };
   }
 
   @Patch(':id/feature/:featureId')
@@ -54,14 +79,29 @@ export class PropertyController {
     @Param('featureId') featureId: string,
     @Body() feature: FeatureDto,
   ) {
-    return this.propertyService.updateFeature(propertyId, featureId, feature);
+    const _feature = await this.propertyService.updateFeature(
+      propertyId,
+      featureId,
+      feature,
+    );
+    return {
+      message: 'Property feature updated successfully',
+      ..._feature,
+    };
   }
 
   @Get('user')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all properties owned by user' })
   async findAllByUser(@Req() req, @Query() paginationDto: PaginationQueryDto) {
-    return this.propertyService.findAllByUser(req.user.id, paginationDto);
+    const properties = await this.propertyService.findAllByUser(
+      req.user.id,
+      paginationDto,
+    );
+    return {
+      message: 'Properties fetched successfully',
+      ...properties,
+    };
   }
 
   @Public()
@@ -69,17 +109,22 @@ export class PropertyController {
   @ApiOperation({
     summary: 'Search for properties by title, description, or location',
   })
-  async search(
-    @Query('query') query: string,
-    @Query() pagination: PaginationQueryDto,
-  ) {
-    return this.propertyService.search(query, pagination);
+  async search(@Query('query') query: string) {
+    const properties = await this.propertyService.search(query);
+    return {
+      message: 'Properties found successfully',
+      ...properties,
+    };
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Find a property by ID' })
   async findOne(@Param('id') id: string) {
-    return this.propertyService.findOne(id);
+    const property = await this.propertyService.findOne(id);
+    return {
+      message: 'Property fetched successfully',
+      ...property,
+    };
   }
 
   @Patch(':id')
@@ -91,7 +136,14 @@ export class PropertyController {
     @Param('id') id: string,
     @Body() updatePropertyDto: UpdatePropertyDto,
   ) {
-    return this.propertyService.updateProperty(id, updatePropertyDto);
+    const property = await this.propertyService.updateProperty(
+      id,
+      updatePropertyDto,
+    );
+    return {
+      message: 'Property updated successfully',
+      ...property,
+    };
   }
 
   @Delete(':id/document/:documentId')
@@ -103,16 +155,10 @@ export class PropertyController {
     @Param('id') propertyId: string,
     @Param('documentId') documentId: string,
   ) {
-    return this.propertyService.removeDocument(propertyId, documentId);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  @OwnerResource('property')
-  @UseGuards(OwnerGuard)
-  @ApiOperation({ summary: 'Delete a property' })
-  async delete(@Param('id') id: string) {
-    return this.propertyService.deleteProperty(id);
+    await this.propertyService.removeDocument(propertyId, documentId);
+    return {
+      message: 'Property document deleted successfully',
+    };
   }
 
   @Delete(':id/image/:imageId')
@@ -122,7 +168,10 @@ export class PropertyController {
     @Param('id') id: string,
     @Param('imageId') imageId: string,
   ) {
-    return this.propertyService.removeImage(id, imageId);
+    await this.propertyService.removeImage(id, imageId);
+    return {
+      message: 'Property image deleted successfully',
+    };
   }
 
   @Delete(':id/feature/featureId')
@@ -134,6 +183,21 @@ export class PropertyController {
     @Param('id') propertyId: string,
     @Param('featureId') featureId: string,
   ) {
-    return this.propertyService.deleteFeature(propertyId, featureId);
+    await this.propertyService.deleteFeature(propertyId, featureId);
+    return {
+      message: 'Property feature deleted successfully',
+    };
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  @OwnerResource('property')
+  @UseGuards(OwnerGuard)
+  @ApiOperation({ summary: 'Delete a property' })
+  async delete(@Param('id') id: string) {
+    await this.propertyService.deleteProperty(id);
+    return {
+      message: 'Property deleted successfully',
+    };
   }
 }

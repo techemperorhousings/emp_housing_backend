@@ -9,6 +9,7 @@ import {
 } from 'class-validator';
 import { TicketStatus, TicketPriority } from '@prisma/client';
 import { Type } from 'class-transformer';
+import { PaginationQueryDto } from '@utils/pagination';
 
 export class CreateSupportTicketDto {
   @ApiProperty({
@@ -147,4 +148,30 @@ export class UpdateStatusDto {
   @IsString()
   @IsNotEmpty()
   id: string;
+}
+
+export class FilterDto extends PaginationQueryDto {
+  @ApiPropertyOptional({
+    enum: TicketStatus,
+    description: 'Filter by offer status',
+  })
+  @IsOptional()
+  @IsEnum(TicketStatus)
+  status: TicketStatus;
+}
+
+export class AssignTicketDto {
+  @ApiProperty({ example: 'user_98765', description: 'User ID of the agent' })
+  @IsString()
+  @IsNotEmpty()
+  assignedToId: string;
+}
+
+export class TicketPriorityDto {
+  @ApiProperty({
+    enum: TicketPriority,
+  })
+  @IsString()
+  @IsNotEmpty()
+  priority: TicketPriority;
 }

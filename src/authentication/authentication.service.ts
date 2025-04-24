@@ -52,19 +52,30 @@ export class AuthenticationService {
 
   async signup(params: AuthDto): Promise<object> {
     // Check if a user with the same email or username already exists
-    const existingUser = await this.prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: params.email },
-          { username: params.username, phoneNumber: params.phoneNumber },
-        ],
-      },
-    });
+    //check if roleId exists
+    const [existingUser, roleExists] = await Promise.all([
+      this.prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: params.email },
+            { fullname: params.fullname, phoneNumber: params.phoneNumber },
+          ],
+        },
+      }),
+      this.prisma.role.findUnique({
+        where: {
+          id: params.roleId,
+        },
+      }),
+    ]);
 
     if (existingUser) {
       throw new ForbiddenException(
         'A user with this email or username or phone number already exists.',
       );
+    }
+    if (!roleExists) {
+      throw new ForbiddenException('Role does not exist');
     }
 
     try {
@@ -74,12 +85,12 @@ export class AuthenticationService {
       // 2. Create a new user in the database
       const user = await this.prisma.user.create({
         data: {
-          firstname: params.firstname,
-          lastname: params.lastname,
           email: params.email,
-          username: params.username,
+          fullname: params.fullname,
           password: hash,
           phoneNumber: params.phoneNumber,
+          profileImage: params.profileImage,
+          roleId: params.roleId,
         },
       });
 

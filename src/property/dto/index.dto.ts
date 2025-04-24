@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PropertyStatus, PropertyType } from '@prisma/client';
-import { PaginationQueryDto } from '@utils/pagination.dto';
+import { PaginationQueryDto } from '@utils/pagination';
 
 export class FeatureDto {
   @ApiProperty({
@@ -311,4 +311,22 @@ export class PropertyFilterDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(PropertyType)
   type?: PropertyType;
+}
+
+export class PropertyStatusDto {
+  @ApiProperty({
+    enum: PropertyStatus,
+    description: 'Current status of the property',
+  })
+  @IsNotEmpty()
+  @IsEnum(PropertyStatus)
+  status: PropertyStatus;
+
+  @ApiProperty({
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'Unique identifier of the property',
+  })
+  @IsNotEmpty()
+  @IsUUID()
+  id: string;
 }

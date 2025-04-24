@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { FavoriteService } from './favorite.service';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { PaginationQueryDto } from '@utils/pagination.dto';
+import { PaginationQueryDto } from '@utils/pagination';
 
 @ApiTags('Favorites')
 @ApiBearerAuth('JWT-auth')

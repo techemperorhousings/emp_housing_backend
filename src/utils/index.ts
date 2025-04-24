@@ -1,53 +1,5 @@
 import * as crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-enum AccessLevel {
-  ALL = 'ALL',
-  ADMIN = 'ADMIN',
-  USER = 'USER',
-  SELLER = 'SELLER',
-  BUYER = 'BUYER',
-  SUPPORT_STAFF = 'SUPPORT_STAFF',
-}
-const newFunc = () => {};
-
-export type ACCESS_LEVEL = keyof typeof AccessLevel;
-
-export const PERMISSIONS_ARRAY: Array<{ name: string; access: ACCESS_LEVEL }> =
-  [
-    { name: 'READ', access: 'ALL' },
-    { name: 'WRITE', access: 'ALL' },
-    { name: 'DELETE', access: 'ADMIN' },
-    { name: 'UPDATE', access: 'ADMIN' },
-    { name: 'VIEW', access: 'ALL' },
-    { name: 'CREATE', access: 'ADMIN' },
-    { name: 'MANAGE', access: 'ADMIN' },
-    { name: 'APPROVE', access: 'ADMIN' },
-    { name: 'REJECT', access: 'ADMIN' },
-    { name: 'UPDATE_PROPERTY', access: 'SELLER' },
-    { name: 'BOOK_PROPERTY', access: 'BUYER' },
-  ];
-
-export type USER_PERMISSIONS_ARRAY = keyof typeof PERMISSIONS_ARRAY;
-
-export const GET_ROLE_AND_PERMISSIONS = {
-  role: {
-    select: {
-      name: true,
-      permissions: {
-        select: {
-          permission: {
-            select: {
-              name: true,
-              access: true,
-            },
-          },
-        },
-      },
-    },
-  },
-};
 export const generateMagicLinkToken = (): string => {
   return uuidv4();
 };

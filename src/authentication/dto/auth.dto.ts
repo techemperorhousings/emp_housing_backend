@@ -1,11 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsDate,
   IsEmail,
   IsNotEmpty,
-  IsObject,
-  IsOptional,
   IsString,
+  Matches,
   MaxLength,
 } from 'class-validator';
 
@@ -19,33 +17,11 @@ export class AuthDto {
   readonly email: string;
 
   @ApiProperty({
-    description: 'Username',
-    example: 'Tester',
+    description: 'Full Name',
+    example: 'John Doe',
   })
   @IsNotEmpty()
-  readonly username: string;
-
-  @ApiProperty({
-    description: 'First Name',
-    example: 'Test',
-  })
-  @IsNotEmpty()
-  readonly firstname: string;
-
-  @ApiProperty({
-    description: 'Last Name',
-    example: 'Account',
-  })
-  @IsNotEmpty()
-  readonly lastname: string;
-
-  @ApiProperty({
-    description: 'Date of Birth',
-    example: '2000-01-01T00:00:00.000Z',
-  })
-  @IsDate()
-  @IsNotEmpty()
-  readonly dob: Date;
+  readonly fullname: string;
 
   @ApiProperty({
     description: 'Phone Number',
@@ -56,42 +32,34 @@ export class AuthDto {
   readonly phoneNumber: string;
 
   @ApiProperty({
-    description: 'Address',
-    example: '123 Main St',
-  })
-  @IsString()
-  @IsNotEmpty()
-  readonly address: string;
-
-  @ApiProperty({
-    description: 'Location',
-    example: {
-      lat: 'number',
-      lng: 'number',
-      formatted_address: 'string',
-      city: 'string',
-      country: 'string',
-      postal_code: 'string',
-    },
-  })
-  @IsObject()
-  @IsOptional()
-  readonly location: object;
-
-  @ApiProperty({
     description: 'Password',
-    example: 'password',
+    example: 'P@ssword123',
   })
   @IsString()
   @IsNotEmpty()
   @MaxLength(60)
+  @Matches(
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,60}$/,
+    {
+      message:
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+    },
+  )
   readonly password: string;
 
-  // @ApiProperty({
-  //   description: 'Status',
-  //   example: 'ACTIVE',
-  // })
-  // @IsString()
-  // @IsNotEmpty()
-  // readonly status: string;
+  @ApiProperty({
+    description: 'Profile Image Url',
+    example: 'https://example.com/image.jpg',
+  })
+  @IsNotEmpty()
+  @IsString()
+  readonly profileImage: string;
+
+  @ApiProperty({
+    description: 'Role ID',
+    example: '1234567890abcdef12345678',
+  })
+  @IsNotEmpty()
+  @IsString()
+  readonly roleId: string;
 }

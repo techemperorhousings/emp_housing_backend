@@ -1,48 +1,82 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
-import { UpdateUserDto } from './dto/index.dto';
+import {
+  UpdateUserDto,
+  UpdateUserRoleDto,
+  UpdateUserStatusDto,
+} from './dto/index.dto';
+import { PaginatedResponse, PaginationQueryDto } from '@utils/pagination';
 
 @Injectable()
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  //update user
-  async updateUser(
-    userId: string,
-    body: UpdateUserDto,
-  ): Promise<{ message: string; data: User }> {
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: body,
-    });
+  async findAll(query: PaginationQueryDto): Promise<PaginatedResponse<User>> {
+    const { skip, take } = query;
 
-    if (!updatedUser) {
-      throw new NotFoundException('User not found');
-    }
+    const [users, total] = await Promise.all([
+      this.prisma.user.findMany({
+        skip,
+        take,
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      this.prisma.user.count(),
+    ]);
 
     return {
-      message: 'User updated successfully',
-      data: updatedUser,
+      data: users,
+      total,
+      skip,
+      take,
     };
   }
 
   //get one user
-  async getOneUser(userId: string) {
+  async getOneUser(userId: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
-
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
-    return {
-      message: 'User fetched successfully',
-      data: user,
-    };
+    return user;
   }
 
+  async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    await this.getOneUser(id);
+    return await this.prisma.user.update({
+      where: { id },
+      data: updateUserDto,
+    });
+  }
+
+  async updateUserStatus(
+    id: string,
+    updateUserStatusDto: UpdateUserStatusDto,
+  ): Promise<User> {
+    await this.getOneUser(id);
+    return await this.prisma.user.update({
+      where: { id },
+      data: {
+        isActive: updateUserStatusDto.isActive,
+      },
+    });
+  }
+
+  async updateUserRole(
+    id: string,
+    updateUserRoleDto: UpdateUserRoleDto,
+  ): Promise<User> {
+    return await this.prisma.user.update({
+      where: { id },
+      data: {
+        roleId: updateUserRoleDto.role,
+      },
+    });
+  }
   //delete a user
   async deleteUser(userId: string): Promise<{ message: string }> {
     await this.getOneUser(userId);

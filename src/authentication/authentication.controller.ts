@@ -21,8 +21,12 @@ import {
   RestPasswordDTO,
 } from './dto';
 import { Public } from '@decorators/index.decorator';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Authentication')
+@Throttle({
+  signup: { limit: 5, ttl: 3600 },
+})
 @Controller('/authentication')
 export class AuthenticationController {
   constructor(
