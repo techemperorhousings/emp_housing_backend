@@ -58,8 +58,6 @@ model User {
   role           Role?           @relation(fields: [roleId], references: [id])
   roleId         String?
   Notifications  Notifications[]
-  sentMessages     Message[] @relation("SentMessages")
-  receivedMessages Message[] @relation("ReceivedMessages")
 }
 
 model KYC {
@@ -444,21 +442,6 @@ model Notifications {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model Message {
-  id          String   @id @default(uuid())
-  content     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  isRead      Boolean  @default(false)
-  
-  // Relations
-  senderId    String
-  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
-  
-  receiverId  String
-  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
 }
 
 enum APP_STATUS {
