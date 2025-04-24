@@ -37,8 +37,7 @@ export class ChatService {
         receiver: {
           select: {
             id: true,
-            firstname: true,
-            lastname: true,
+            fullname: true,
             isActive: true,
             phoneNumber: true,
             profileImage: true,
@@ -54,8 +53,7 @@ export class ChatService {
         sender: {
           select: {
             id: true,
-            firstname: true,
-            lastname: true,
+            fullname: true,
             isActive: true,
             phoneNumber: true,
             profileImage: true,
