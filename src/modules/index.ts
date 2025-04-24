@@ -16,6 +16,7 @@ import { PurchaseModule } from '@purchase/purchase.module';
 import { RentalPaymentModule } from '@rental-payment/rental-payment.module';
 import { ReviewModule } from '@review/review.module';
 import { SupportTicketModule } from '@support-ticket/support-ticket.module';
+import { ChatModule } from '@chat/chat.module';
 import { UserModule } from '@user/user.module';
 // import { ChatModule } from '@chat/chat.module';
 
@@ -29,6 +30,7 @@ export const modules = [
   }),
   PrismaModule,
   AuthenticationModule,
+  ChatModule,
   MailModule,
   UserModule,
   KycModule,
