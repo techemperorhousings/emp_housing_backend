@@ -22,7 +22,7 @@ import {
 } from './dto/index.dto';
 import { Public, OwnerResource } from '@decorators/index.decorator';
 import { OwnerGuard } from '@guards/owner.guard';
-import { PaginationQueryDto } from '@utils/pagination.dto';
+import { PaginationQueryDto } from '@utils/pagination';
 
 @ApiTags('Listing')
 @Controller('listing')
@@ -34,21 +34,36 @@ export class ListingController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new listing for a property' })
   async create(@Body() dto: CreateListingDto) {
-    return this.listingService.createListing(dto);
+    const listing = await this.listingService.createListing(dto);
+    return {
+      message: 'Listing created successfully',
+      ...listing,
+    };
   }
 
   @Public()
   @Get()
   @ApiOperation({ summary: 'Retrieve all listings with optional filters' })
   async findAll(@Query() filters: ListingFilterDto) {
-    return this.listingService.findAllListings(filters);
+    const listings = await this.listingService.findAllListings(filters);
+    return {
+      message: 'Listings fetched successfully',
+      ...listings,
+    };
   }
 
   @Get('user')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Retrieve all listings created by a user' })
   async findByUser(@Req() req, @Query() pagination: PaginationQueryDto) {
-    return this.listingService.findListingsByUser(req.user.id, pagination);
+    const listings = await this.listingService.findListingsByUser(
+      req.user.id,
+      pagination,
+    );
+    return {
+      message: 'Listings fetched successfully',
+      ...listings,
+    };
   }
 
   @Get('property/:propertyId')
@@ -58,14 +73,25 @@ export class ListingController {
     @Param('propertyId') propertyId: string,
     @Query() pagination: PaginationQueryDto,
   ) {
-    return this.listingService.findListingsByProperty(propertyId, pagination);
+    const listings = await this.listingService.findListingsByProperty(
+      propertyId,
+      pagination,
+    );
+    return {
+      message: 'Listings fetched successfully',
+      ...listings,
+    };
   }
 
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve a listing by ID' })
   async findOne(@Param('id') id: string) {
-    return this.listingService.findListingById(id);
+    const listing = this.listingService.findListingById(id);
+    return {
+      message: 'Listing fetched successfully',
+      ...listing,
+    };
   }
 
   @Patch(':id/status')
@@ -81,7 +107,11 @@ export class ListingController {
     @Param('id') id: string,
     @Body('isActive') isActive: boolean,
   ) {
-    return this.listingService.updateListingStatus(id, isActive);
+    const listing = await this.listingService.updateListingStatus(id, isActive);
+    return {
+      message: 'Listing status updated successfully',
+      ...listing,
+    };
   }
 
   @Patch(':id')
@@ -91,7 +121,11 @@ export class ListingController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a listing' })
   async update(@Param('id') id: string, @Body() dto: UpdateListingDto) {
-    return this.listingService.updateListing(id, dto);
+    const listing = await this.listingService.updateListing(id, dto);
+    return {
+      message: 'Listing updated successfully',
+      ...listing,
+    };
   }
 
   @Delete(':id')
@@ -101,6 +135,9 @@ export class ListingController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a listing' })
   async delete(@Param('id') id: string) {
-    return this.listingService.deleteListing(id);
+    await this.listingService.deleteListing(id);
+    return {
+      message: 'Listing deleted successfully',
+    };
   }
 }

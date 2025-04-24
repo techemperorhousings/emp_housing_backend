@@ -3,14 +3,55 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { RentalAgreement } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
+import { PaginatedResponse } from '@utils/pagination';
 import { CreateRentalAgreementDto } from './dto/index.dto';
 
 @Injectable()
 export class RentalAgreementService {
   constructor(private readonly prisma: PrismaService) {}
+  async getAllRentalAgreements(
+    pagination,
+  ): Promise<PaginatedResponse<RentalAgreement>> {
+    const { skip, take } = pagination;
+    const [agreements, total] = await Promise.all([
+      await this.prisma.rentalAgreement.findMany({
+        skip,
+        take,
+        include: this.includeObj,
+      }),
+      await this.prisma.rentalAgreement.count(),
+    ]);
+    return {
+      data: agreements,
+      total,
+      skip,
+      take,
+    };
+  }
 
-  async createRental(dto: CreateRentalAgreementDto) {
+  async getRentalAgreementById(id: string): Promise<RentalAgreement> {
+    const rental = await this.prisma.rentalAgreement.findUnique({
+      where: { id },
+      include: this.includeObj,
+    });
+
+    if (!rental) throw new NotFoundException('Rental Agreement not found');
+
+    return rental;
+  }
+
+  async updateRentalStatus({ id, status }): Promise<RentalAgreement> {
+    await this.getRentalAgreementById(id);
+
+    return await this.prisma.rentalAgreement.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
+  async createRental(dto: CreateRentalAgreementDto): Promise<RentalAgreement> {
     const { listingId, tenantId, bookingId, ...data } = dto;
 
     // Validate rental dates
@@ -37,7 +78,7 @@ export class RentalAgreementService {
       throw new NotFoundException('Booking has not been approved.');
     }
 
-    const newAgreement = await this.prisma.rentalAgreement.create({
+    return await this.prisma.rentalAgreement.create({
       data: {
         listing: {
           connect: { id: listingId }, // Connect to the listing
@@ -56,69 +97,33 @@ export class RentalAgreementService {
         endDate,
       },
     });
-    return {
-      message: 'Rental agreement created successfully',
-      data: newAgreement,
-    };
-  }
-
-  async getRentalById(id: string) {
-    const rental = await this.prisma.rentalAgreement.findUnique({
-      where: { id },
-      include: this.includeObj,
-    });
-
-    if (!rental) throw new NotFoundException('Rental not found');
-    return {
-      message: 'Rental agreement fetched successfully',
-      data: rental,
-    };
   }
 
   //accept terms and conditions
-  async acceptTermsAndConditions(id: string) {
-    await this.getRentalById(id);
+  async acceptTermsAndConditions(id: string): Promise<RentalAgreement> {
+    await this.getRentalAgreementById(id);
 
-    const rental = await this.prisma.rentalAgreement.update({
+    return await this.prisma.rentalAgreement.update({
       where: { id },
       data: { termsAccepted: true },
     });
-    return {
-      message: 'Terms and conditions accepted successfully',
-      data: rental,
-    };
-  }
-
-  async updateRentalStatus({ id, status }) {
-    await this.getRentalById(id);
-
-    const rental = await this.prisma.rentalAgreement.update({
-      where: { id },
-      data: { status },
-    });
-    return {
-      message: 'Rental status updated successfully',
-      data: rental,
-    };
   }
 
   //get all user renatals
-  async getUserRentals(userId: string) {
-    const rentals = await this.prisma.rentalAgreement.findMany({
+  async getUserRentalAgreements(userId: string): Promise<RentalAgreement[]> {
+    return await this.prisma.rentalAgreement.findMany({
       where: {
         OR: [{ tenant: { id: userId } }, { landlord: { id: userId } }],
       },
       include: this.includeObj,
     });
-    return {
-      message: 'Rentals fetched successfully',
-      data: rentals,
-    };
   }
 
   //get rental agreements for a property
-  async getPropertyRentalAgreements(propertyId: string) {
-    const rentals = await this.prisma.rentalAgreement.findMany({
+  async getPropertyRentalAgreements(
+    propertyId: string,
+  ): Promise<RentalAgreement[]> {
+    return await this.prisma.rentalAgreement.findMany({
       where: {
         listing: {
           propertyId: propertyId,
@@ -126,15 +131,10 @@ export class RentalAgreementService {
       },
       include: this.includeObj,
     });
-
-    return {
-      message: 'Rental agreements fetched successfully',
-      data: rentals,
-    };
   }
 
   //update rental agreement
-  async updateRentalAgreement(id: string, dto) {
+  async updateRentalAgreement(id: string, dto): Promise<RentalAgreement> {
     const updateData: any = {};
 
     // Validate and update start and end dates if provided
@@ -153,14 +153,10 @@ export class RentalAgreementService {
       updateData.depositAmount = dto.depositAmount;
 
     // Perform the update
-    const agreement = await this.prisma.rentalAgreement.update({
+    return await this.prisma.rentalAgreement.update({
       where: { id },
       data: updateData,
     });
-    return {
-      message: 'Rental agreement updated successfully',
-      data: agreement,
-    };
   }
 
   private validateRentalDates(startDateString: string, endDateString: string) {

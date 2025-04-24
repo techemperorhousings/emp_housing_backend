@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import { SupportTicketService } from './support-ticket.service';
@@ -16,7 +17,11 @@ import {
   CreateTicketMessageDto,
   CreateTicketAttachmentsDto,
   UpdateStatusDto,
+  AssignTicketDto,
+  FilterDto,
+  TicketPriorityDto,
 } from './dto/index.dto';
+import { TicketPriority } from '@prisma/client';
 
 @ApiTags('Support Tickets')
 @ApiBearerAuth('JWT-auth')
@@ -28,28 +33,55 @@ export class SupportTicketController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new support ticket' })
   async createTicket(@Req() req, @Body() dto: CreateSupportTicketDto) {
-    return this.service.createTicket(req.user.id, dto);
+    const ticket = await this.service.createTicket(req.user.id, dto);
+    return {
+      message: 'Ticket created successfully',
+      ...ticket,
+    };
   }
 
   @Get('/user')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all tickets for a user' })
   async getUserTickets(@Req() req) {
-    return this.service.getUserTickets(req.user.id);
+    const tickets = await this.service.getUserTickets(req.user.id);
+    return {
+      message: 'Tickets fetched successfully',
+      ...tickets,
+    };
   }
 
   @Get('/assigned/user')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all assigned tickets for a user' })
   async getAssignedTickets(@Req() req) {
-    return this.service.getAssignedTickets(req.user.id);
+    const tickets = await this.service.getAssignedTickets(req.user.id);
+    return {
+      message: 'Tickets fetched successfully',
+      ...tickets,
+    };
+  }
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all tickets with pagination' })
+  async getAllTickets(@Query() filters: FilterDto) {
+    const tickets = await this.service.getAllTickets(filters);
+    return {
+      message: 'Tickets fetched successfully',
+      ...tickets,
+    };
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get ticket details' })
   @HttpCode(HttpStatus.OK)
   async getTicketById(@Param('id') ticketId: string) {
-    return this.service.getTicketById(ticketId);
+    const ticket = await this.service.getTicketById(ticketId);
+    return {
+      message: 'Ticket fetched successfully',
+      ...ticket,
+    };
   }
 
   @Post(':id/messages')
@@ -60,7 +92,11 @@ export class SupportTicketController {
     @Param('id') ticketId: string,
     @Body() dto: CreateTicketMessageDto,
   ) {
-    return this.service.addMessage(ticketId, req.user.id, dto);
+    const _message = await this.service.addMessage(ticketId, req.user.id, dto);
+    return {
+      message: 'Message added successfully',
+      ..._message,
+    };
   }
 
   @Patch(':id/attachments')
@@ -71,7 +107,15 @@ export class SupportTicketController {
     @Param('id') ticketId: string,
     @Body() dto: CreateTicketAttachmentsDto,
   ) {
-    return this.service.addAttachments(ticketId, req.user.id, dto);
+    const attachments = await this.service.addAttachments(
+      ticketId,
+      req.user.id,
+      dto,
+    );
+    return {
+      message: 'Attachments added successfully',
+      ...attachments,
+    };
   }
 
   @Patch(':id/reply')
@@ -86,7 +130,15 @@ export class SupportTicketController {
     @Req() req,
   ) {
     const staffId = req.user.id;
-    return this.service.replyToTicket(ticketId, staffId, message);
+    const _message = await this.service.replyToTicket(
+      ticketId,
+      staffId,
+      message,
+    );
+    return {
+      message: 'Message replied successfully',
+      ..._message,
+    };
   }
 
   @Patch(':id/status/:status')
@@ -94,6 +146,44 @@ export class SupportTicketController {
   @ApiOperation({ summary: 'Update support ticket status' })
   async updateStatus(@Param() param: UpdateStatusDto) {
     const { status, id } = param;
-    return this.service.updateTicketStatus(id, status);
+    const ticket = await this.service.updateTicketStatus(id, status);
+    return {
+      message: 'Ticket status updated successfully',
+      ...ticket,
+    };
+  }
+
+  @Patch(':id/assign')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Assign a ticket to an agent' })
+  @ApiBody({
+    type: AssignTicketDto,
+  })
+  async assignTicket(
+    @Param('id') ticketId: string,
+    @Body('assignedToId') assignedToId: string,
+  ) {
+    const ticket = await this.service.assignTicket(ticketId, assignedToId);
+    return {
+      message: 'Ticket assigned successfully',
+      ...ticket,
+    };
+  }
+
+  @Patch(':id/priority')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Change priority of a ticket' })
+  @ApiBody({
+    type: TicketPriorityDto,
+  })
+  async changePriority(
+    @Param('id') ticketId: string,
+    @Body('priority') priority: TicketPriority,
+  ) {
+    const ticket = await this.service.changePriority(ticketId, priority);
+    return {
+      message: 'Ticket priority updated successfully',
+      ...ticket,
+    };
   }
 }

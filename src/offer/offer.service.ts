@@ -4,14 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { CreateOfferDto } from './dto/index.dto';
-import { OfferStatus } from '@prisma/client';
+import { CreateOfferDto, FilterDto } from './dto/index.dto';
+import { Offer, OfferStatus } from '@prisma/client';
+import { PaginatedResponse } from '@utils/pagination';
 
 @Injectable()
 export class OfferService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createOffer(dto: CreateOfferDto) {
+  async createOffer(dto: CreateOfferDto): Promise<Offer> {
     // Ensure buyer and listing exists
     const [buyer, listing] = await Promise.all([
       this.prisma.user.findUnique({
@@ -26,16 +27,33 @@ export class OfferService {
 
     if (!listing) throw new NotFoundException('Listing not found');
 
-    const offer = await this.prisma.offer.create({
+    return await this.prisma.offer.create({
       data: dto,
     });
+  }
+
+  //get all offers
+  async getAllOffers(data: FilterDto): Promise<PaginatedResponse<Offer>> {
+    const { skip, take, status } = data;
+
+    const [offers, total] = await Promise.all([
+      this.prisma.offer.findMany({
+        skip,
+        take,
+        where: status ? { status } : {},
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.offer.count(),
+    ]);
     return {
-      message: 'Offer created successfully',
-      data: offer,
+      data: offers,
+      total,
+      skip,
+      take,
     };
   }
 
-  async getOfferById(id: string) {
+  async getOfferById(id: string): Promise<Offer> {
     const offer = await this.prisma.offer.findUnique({
       where: { id },
       include: { buyer: true, listing: true },
@@ -43,68 +61,49 @@ export class OfferService {
 
     if (!offer) throw new NotFoundException('Offer not found');
 
-    return {
-      message: 'Offer fetched successfully',
-      data: offer,
-    };
+    return offer;
   }
 
-  async getOffersByListing(listingId: string) {
-    const offers = await this.prisma.offer.findMany({
+  async getOffersByListing(listingId: string): Promise<Offer[]> {
+    return await this.prisma.offer.findMany({
       where: { listingId },
       include: { buyer: true },
     });
-    return {
-      message: 'Offers fetched successfully',
-      data: offers,
-    };
   }
 
-  async getuserOffers(buyerId: string) {
-    const offers = await this.prisma.offer.findMany({
+  async getuserOffers(buyerId: string): Promise<Offer[]> {
+    return await this.prisma.offer.findMany({
       where: { buyerId },
       include: { listing: true },
     });
-    return {
-      message: 'Offers fetched successfully',
-      data: offers,
-    };
   }
 
   //updateOfferStatus
-  async updateOfferStatus(id: string, status: OfferStatus) {
+  async updateOfferStatus(id: string, status: OfferStatus): Promise<Offer> {
     await this.getOfferById(id);
-    const updatedOffer = await this.prisma.offer.update({
+    return await this.prisma.offer.update({
       where: { id },
       data: { status },
     });
-    return {
-      message: 'Offer status updated successfully',
-      data: updatedOffer,
-    };
   }
 
   async withdrawOffer({ id, userId }) {
     await this.getOfferById(id);
     const offer = await this.getOfferById(id);
     //only update if status is pending and user is user
-    if (offer.data.status !== OfferStatus.PENDING)
+    if (offer.status !== OfferStatus.PENDING)
       throw new ForbiddenException(
         'Cannot update offer status if offer is not pending',
       );
 
-    if (offer.data.buyerId !== userId) {
+    if (offer.buyerId !== userId) {
       throw new ForbiddenException('Cannot cancel offer');
     }
-    const updatedOffer = await this.prisma.offer.update({
+    return await this.prisma.offer.update({
       where: { id },
       data: {
         status: OfferStatus.WITHDRAWN,
       },
     });
-    return {
-      message: 'Offer canceled successfully',
-      data: updatedOffer,
-    };
   }
 }

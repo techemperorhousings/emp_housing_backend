@@ -1,9 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { RentalStatus } from '@prisma/client';
 import {
-  IsUUID,
   IsNotEmpty,
   IsEnum,
+  IsUUID,
   IsNumber,
   IsOptional,
   IsString,
@@ -78,7 +78,7 @@ export class UpdateRentalAgreementDto {
 }
 
 export class UpdateRentalStatusDto {
-  @ApiProperty({ description: 'New rental status' })
+  @ApiProperty({ description: 'New rental status', enum: RentalStatus })
   @IsNotEmpty()
   @IsEnum(RentalStatus)
   status: RentalStatus;

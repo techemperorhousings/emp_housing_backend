@@ -6,11 +6,18 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import { RentalPaymentService } from './rental-payment.service';
-import { ApiOperation, ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiBearerAuth,
+  ApiTags,
+  ApiOkResponse,
+} from '@nestjs/swagger';
 import { CreateRentalPaymentDto } from './dto/index.dto';
+import { PaginationQueryDto } from '@utils/pagination';
 
 @ApiTags('Rental Payment')
 @ApiBearerAuth('JWT-auth')
@@ -22,7 +29,22 @@ export class RentalPaymentController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Make payment for a rental property' })
   async createPayment(@Body() dto: CreateRentalPaymentDto) {
-    return this.service.makePayment(dto);
+    const payment = await this.service.makePayment(dto);
+    return {
+      message: 'Payment made successfully',
+      ...payment,
+    };
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all payments' })
+  @ApiOkResponse({ description: 'List of all payments' })
+  async getAllPayments(@Query() paginationDto: PaginationQueryDto) {
+    const payments = await this.service.getAllPayments(paginationDto);
+    return {
+      message: 'Payments fetched successfully',
+      ...payments,
+    };
   }
 
   @Get('user')
@@ -31,20 +53,32 @@ export class RentalPaymentController {
     summary: 'Get all user rental payments',
   })
   async getPaymentsByRentalAgreement(@Req() req) {
-    return this.service.getUserPayments(req.user.id);
+    const payments = await this.service.getUserPayments(req.user.id);
+    return {
+      message: 'User payments fetched successfully',
+      ...payments,
+    };
   }
 
   @Get('/property/:propertyId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all rental payments for a specific property' })
   async getPropertyPayments(@Param('propertyId') propertyId: string) {
-    return this.service.getPropertyPayments(propertyId);
+    const payments = await this.service.getPropertyPayments(propertyId);
+    return {
+      message: 'Property payments fetched successfully',
+      ...payments,
+    };
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'View rental payment details' })
   async getPaymentById(@Param('id') id: string) {
-    return this.service.getPaymentById(id);
+    const payments = await this.service.getPaymentById(id);
+    return {
+      message: 'Payment fetched successfully',
+      ...payments,
+    };
   }
 }

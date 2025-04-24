@@ -4,7 +4,10 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  Patch,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import {
@@ -14,7 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { KycService } from './kyc.service';
-import { CreateKycDto } from './dto/index.dto';
+import { CreateKycDto, GetKycQueryDto, RejectKycDto } from './dto/index.dto';
 
 @ApiTags('KYC')
 @ApiBearerAuth('JWT-auth')
@@ -26,7 +29,11 @@ export class KycController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Submit KYC for verification' })
   async submitKyc(@Body() dto: CreateKycDto, @Req() req) {
-    return this.kycService.submitKyc(dto, req.user.id);
+    const kyc = await this.kycService.submitKyc(dto, req.user.id);
+    return {
+      message: 'kYC submitted successfully',
+      ...kyc,
+    };
   }
 
   @Get('status')
@@ -36,6 +43,71 @@ export class KycController {
     description: 'KYC status retrieved successfully',
   })
   async getKycStatus(@Req() req) {
-    return this.kycService.getKycStatus(req.user.id);
+    const status = await this.kycService.getKycStatus(req.user.id);
+    return {
+      message: 'KYC status fetched successfully',
+      ...status,
+    };
+  }
+
+  /***************Admin Routes ************/
+  @Get()
+  @ApiOperation({ summary: 'Get all KYC submissions with pagination' })
+  async getAllKyc(@Query() query: GetKycQueryDto) {
+    const kycs = await this.kycService.getAllKyc(query);
+    return {
+      message: 'KYC submissions fetched successfully',
+      ...kycs,
+    };
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get specific KYC submission by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'KYC submission retrieved successfully',
+  })
+  async getKycById(@Param('id') id: string) {
+    const kyc = await this.kycService.getKycById(id);
+    return {
+      message: 'KYC fetched successfully',
+      ...kyc,
+    };
+  }
+
+  @Patch(':id/approve')
+  @ApiOperation({ summary: 'Approve KYC submission' })
+  @ApiResponse({
+    status: 200,
+    description: 'KYC submission approved successfully',
+  })
+  async approveKyc(@Param('id') id: string, @Req() req) {
+    const kyc = await this.kycService.approveKyc(id, req.user.id);
+    return {
+      message: 'KYC approved successfully',
+      ...kyc,
+    };
+  }
+
+  @Patch(':id/reject')
+  @ApiOperation({ summary: 'Reject KYC submission with reason' })
+  @ApiResponse({
+    status: 200,
+    description: 'KYC submission rejected successfully',
+  })
+  async rejectKyc(
+    @Param('id') id: string,
+    @Req() req,
+    @Body() rejectKycDto: RejectKycDto,
+  ) {
+    const kyc = await this.kycService.rejectKyc(
+      id,
+      req.user.id,
+      rejectKycDto.reason,
+    );
+    return {
+      message: 'KYC rejected',
+      ...kyc,
+    };
   }
 }

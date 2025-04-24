@@ -9,100 +9,96 @@ import {
   UpdateSupportTicketDto,
   CreateTicketMessageDto,
   CreateTicketAttachmentsDto,
+  FilterDto,
 } from './dto/index.dto';
-import { TicketStatus } from '@prisma/client';
-import { GET_ROLE_AND_PERMISSIONS } from '@utils';
+import {
+  SupportTicket,
+  TicketAttachment,
+  TicketMessage,
+  TicketPriority,
+  TicketStatus,
+} from '@prisma/client';
+import { PaginatedResponse } from '@utils/pagination';
 
 @Injectable()
 export class SupportTicketService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createTicket(userId: string, dto: CreateSupportTicketDto) {
-    //check if user exists
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    await this.prisma.supportTicket.create({
+    return await this.prisma.supportTicket.create({
       data: { ...dto, userId },
     });
-    return {
-      message: 'Support ticket submitted successfully',
-    };
   }
 
-  async getAllTickets() {
-    const tickets = await this.prisma.supportTicket.findMany({
-      include: { user: true, assignedTo: true },
-    });
+  //get all tickets with status filtering
+  async getAllTickets(
+    data: FilterDto,
+  ): Promise<PaginatedResponse<SupportTicket>> {
+    const { skip, take, status } = data;
+
+    const [tickets, total] = await Promise.all([
+      this.prisma.supportTicket.findMany({
+        skip,
+        take,
+        where: status ? { status } : {},
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.supportTicket.count(),
+    ]);
     return {
-      message: 'Tickets fetched successfully',
       data: tickets,
+      total,
+      skip,
+      take,
     };
   }
 
-  async getUserTickets(userId: string) {
-    const tickets = await this.prisma.supportTicket.findMany({
+  async getUserTickets(userId: string): Promise<SupportTicket[]> {
+    return await this.prisma.supportTicket.findMany({
       where: { userId },
       include: { assignedTo: true },
     });
-    return {
-      message: 'Tickets fetched successfully',
-      data: tickets,
-    };
   }
 
-  async getTicketById(ticketId: string) {
+  async getTicketById(ticketId: string): Promise<SupportTicket> {
     const ticket = await this.prisma.supportTicket.findUnique({
       where: { id: ticketId },
       include: { messages: true, attachments: true },
     });
     if (!ticket) throw new NotFoundException('Ticket not found');
-    return {
-      message: 'Ticket fetched successfully',
-      data: ticket,
-    };
+    return ticket;
   }
 
-  async updateTicket(ticketId: string, dto: UpdateSupportTicketDto) {
-    const ticket = await this.prisma.supportTicket.update({
+  async updateTicket(
+    ticketId: string,
+    dto: UpdateSupportTicketDto,
+  ): Promise<SupportTicket> {
+    return await this.prisma.supportTicket.update({
       where: { id: ticketId },
       data: dto,
     });
-    return {
-      message: 'Ticket updated successfully',
-      data: ticket,
-    };
   }
 
   async addMessage(
     ticketId: string,
     userId: string,
     dto: CreateTicketMessageDto,
-  ) {
-    const message = await this.prisma.ticketMessage.create({
+  ): Promise<TicketMessage> {
+    return await this.prisma.ticketMessage.create({
       data: {
         ...dto,
         ticketId,
         userId,
       },
     });
-    return {
-      message: 'Message added successfully',
-      data: message,
-    };
   }
 
   async addAttachments(
     ticketId: string,
     userId: string,
     dto: CreateTicketAttachmentsDto,
-  ) {
-    const ticket = await this.prisma.ticketAttachment.createMany({
+  ): Promise<TicketAttachment[]> {
+    await this.prisma.ticketAttachment.createMany({
       data: dto.attachments.map((attachment) => ({
         ticketId,
         userId,
@@ -110,41 +106,37 @@ export class SupportTicketService {
         fileUrl: attachment.fileUrl,
       })),
     });
-
-    return {
-      message: 'Attachment added successfully',
-      data: ticket,
-    };
+    return await this.prisma.ticketAttachment.findMany({
+      where: { ticketId },
+    });
   }
 
   //get assigned tickets
-  async getAssignedTickets(userId) {
-    const tickets = await this.prisma.supportTicket.findMany({
+  async getAssignedTickets(userId): Promise<SupportTicket[]> {
+    return await this.prisma.supportTicket.findMany({
       where: { assignedToId: userId },
     });
-    return {
-      message: 'Assigned tickets fetched successfully',
-      data: tickets,
-    };
   }
 
   //update ticket status
-  async updateTicketStatus(ticketId: string, status: TicketStatus) {
+  async updateTicketStatus(
+    ticketId: string,
+    status: TicketStatus,
+  ): Promise<SupportTicket> {
     await this.getTicketById(ticketId);
 
-    const updatedTicket = await this.prisma.supportTicket.update({
+    return await this.prisma.supportTicket.update({
       where: { id: ticketId },
       data: { status },
     });
-
-    return {
-      message: 'Ticket status updated successfully',
-      data: updatedTicket,
-    };
   }
 
   //reply to ticket
-  async replyToTicket(ticketId: string, staffId: string, message: string) {
+  async replyToTicket(
+    ticketId: string,
+    staffId: string,
+    message: string,
+  ): Promise<TicketMessage> {
     // Check if the ticket exists
     const ticket = await this.prisma.supportTicket.findUnique({
       where: { id: ticketId },
@@ -157,14 +149,12 @@ export class SupportTicketService {
     // Ensure the user is staff
     const staff = await this.prisma.user.findUnique({
       where: { id: staffId },
-      include: {
-        ...GET_ROLE_AND_PERMISSIONS,
-      },
+      include: { role: true },
     });
 
-    // if (!staff || staff.role.name !== UserRole.SUPPORT_STAFF) {
-    //   throw new ForbiddenException('Only staff members can reply to tickets');
-    // }
+    if (!staff || staff.role.name !== 'SUPPORT_STAFF') {
+      throw new ForbiddenException('Only staff members can reply to tickets');
+    }
 
     // Create a staff reply message
     const new_message = await this.prisma.ticketMessage.create({
@@ -184,9 +174,40 @@ export class SupportTicketService {
       });
     }
 
-    return {
-      message: 'Reply sent successfully',
-      ticketMessage: new_message,
-    };
+    return new_message;
+  }
+
+  async getOneTicket(ticketId: string): Promise<SupportTicket> {
+    const ticket = await this.prisma.supportTicket.findUnique({
+      where: { id: ticketId },
+    });
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+    return ticket;
+  }
+
+  async assignTicket(
+    ticketId: string,
+    assignedToId: string,
+  ): Promise<SupportTicket> {
+    await this.getOneTicket(ticketId);
+    return await this.prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: { assignedToId },
+    });
+  }
+
+  //change priority
+  async changePriority(
+    ticketId: string,
+    priority: TicketPriority,
+  ): Promise<SupportTicket> {
+    await this.getOneTicket(ticketId);
+    return await this.prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: { priority },
+    });
   }
 }

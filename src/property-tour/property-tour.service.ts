@@ -4,14 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { CreatePropertyTourDto } from './dto/index.dto';
-import { TourStatus } from '@prisma/client';
+import { CreatePropertyTourDto, FilterDto } from './dto/index.dto';
+import { PropertyTour, TourStatus } from '@prisma/client';
 
 @Injectable()
 export class PropertyTourService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createTour(dto: CreatePropertyTourDto) {
+  async createTour(dto: CreatePropertyTourDto): Promise<PropertyTour> {
     // Ensure the property and listing exist
     const [property, listing] = await Promise.all([
       this.prisma.property.findUnique({
@@ -39,21 +39,17 @@ export class PropertyTourService {
       );
     }
 
-    const tour = await this.prisma.propertyTour.create({
+    return await this.prisma.propertyTour.create({
       data: {
         ...dto,
         scheduledDate: new Date(dto.scheduledDate),
       },
     });
-    return {
-      message: 'Tour requested successfully',
-      data: tour,
-    };
   }
 
   //get user tour requests
-  async getUserTours(userId: string) {
-    const tours = await this.prisma.propertyTour.findMany({
+  async getUserTours(userId: string): Promise<PropertyTour[]> {
+    return await this.prisma.propertyTour.findMany({
       where: { requestedById: userId },
       include: {
         property: {
@@ -63,101 +59,104 @@ export class PropertyTourService {
         },
       },
     });
-    return {
-      message: 'User tours fetched successfully',
-      data: tours,
-    };
   }
 
-  async getTourById(id: string) {
+  async getTourById(id: string): Promise<PropertyTour> {
     const tour = await this.prisma.propertyTour.findUnique({
       where: { id },
     });
 
     if (!tour) throw new NotFoundException('Tour not found');
 
-    return {
-      message: 'Tour fetched successfully',
-      data: tour,
-    };
+    return tour;
   }
 
-  async cancelTour(id: string) {
+  async cancelTour(id: string): Promise<PropertyTour> {
     const isTour = await this.getTourById(id);
 
-    if (isTour.data.status !== 'PENDING') {
+    if (isTour.status !== 'PENDING') {
       throw new BadRequestException('Only pending tours can be cancelled');
     }
 
-    const cancelledTour = await this.prisma.propertyTour.update({
+    return await this.prisma.propertyTour.update({
       where: { id },
       data: { status: 'CANCELLED' },
     });
-
-    return {
-      message: 'Tour cancelled successfully',
-      data: cancelledTour,
-    };
   }
 
   //submit feedback after tour
-  async submitFeedback(id: string, feedback: string) {
+  async submitFeedback(id: string, feedback: string): Promise<PropertyTour> {
     await this.getTourById(id);
 
-    const updatedTour = await this.prisma.propertyTour.update({
+    return await this.prisma.propertyTour.update({
       where: { id },
       data: { feedback },
     });
-
-    return {
-      message: 'Feedback submitted successfully',
-      data: updatedTour,
-    };
   }
 
   //get all tours for an agent
-  async getAgentTours(agentId: string) {
-    const tours = await this.prisma.propertyTour.findMany({
+  async getAgentTours(agentId: string): Promise<PropertyTour[]> {
+    return await this.prisma.propertyTour.findMany({
       where: { agentId },
     });
-    return {
-      message: 'Agent tours fetched successfully',
-      data: tours,
-    };
   }
 
   //update tour status
-  async updateTourStatus(id: string, status: TourStatus) {
+  async updateTourStatus(
+    id: string,
+    status: TourStatus,
+  ): Promise<PropertyTour> {
     await this.getTourById(id);
 
-    const updatedTour = await this.prisma.propertyTour.update({
+    return await this.prisma.propertyTour.update({
       where: { id },
       data: { status },
     });
-
-    return {
-      message: 'Tour status updated successfully',
-      data: updatedTour,
-    };
   }
 
-  async getToursByStatus(status: TourStatus) {
-    const tours = await this.prisma.propertyTour.findMany({
+  async getToursByStatus(status: TourStatus): Promise<PropertyTour[]> {
+    return await this.prisma.propertyTour.findMany({
       where: { status },
     });
-    return {
-      message: 'Tours fetched successfully',
-      data: tours,
-    };
   }
 
-  async getToursByProperty(propertyId: string) {
-    const tours = await this.prisma.propertyTour.findMany({
+  async getToursByProperty(propertyId: string): Promise<PropertyTour[]> {
+    return await this.prisma.propertyTour.findMany({
       where: { propertyId },
     });
-    return {
-      message: 'Tours fetched successfully',
-      data: tours,
-    };
+  }
+
+  //assign tour to agent
+  async assignTourToAgent(
+    tourId: string,
+    agentId: string,
+  ): Promise<PropertyTour> {
+    await this.getTourById(tourId);
+    //check if agent exists
+    const agent = await this.prisma.user.findUnique({
+      where: { id: agentId },
+    });
+
+    if (!agent) {
+      throw new NotFoundException('Agent not found');
+    }
+
+    // assign tour to agent
+    return await this.prisma.propertyTour.update({
+      where: { id: tourId },
+      data: { agentId },
+    });
+  }
+
+  //get all tours
+  async getAllTours(filterDto: FilterDto): Promise<PropertyTour[]> {
+    const { skip, take, status } = filterDto;
+
+    return this.prisma.propertyTour.findMany({
+      skip,
+      take,
+      where: status ? { status } : {},
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }

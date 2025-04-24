@@ -1,25 +1,24 @@
-import { ConfigModule } from '@nestjs/config';
-import { PassportModule } from '@nestjs/passport';
-import { JwtModule } from '@nestjs/jwt';
 import { AuthenticationModule } from '@authentication/authentication.module';
-import { MailModule } from '@mail/mail.module';
-import { PrismaModule } from '@prisma/prisma.module';
-import { UserModule } from '@user/user.module';
-import { FileUploadModule } from '@file-upload/file-upload.module';
+import { FavoriteModule } from '@favorite/favorite.module';
 import { KycModule } from '@kyc/kyc.module';
 import { ListingModule } from '@listing/listing.module';
-import { PropertyModule } from '@property/property.module';
-import { PurchaseModule } from '@purchase/purchase.module';
-import { RentalAgreementModule } from '@rental/rental-agreement.module';
-import { FavoriteModule } from '@favorite/favorite.module';
+import { MailModule } from '@mail/mail.module';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 import { OfferModule } from '@offer/offer.module';
+import { PrismaModule } from '@prisma/prisma.module';
 import { PropertyBookingModule } from '@property-booking/property-booking.module';
 import { PropertyDocumentModule } from '@property-document/property-document.module';
 import { PropertyTourModule } from '@property-tour/property-tour.module';
+import { PropertyModule } from '@property/property.module';
+import { PurchaseModule } from '@purchase/purchase.module';
 import { RentalPaymentModule } from '@rental-payment/rental-payment.module';
 import { ReviewModule } from '@review/review.module';
 import { SupportTicketModule } from '@support-ticket/support-ticket.module';
 import { ChatModule } from '@chat/chat.module';
+import { UserModule } from '@user/user.module';
+// import { ChatModule } from '@chat/chat.module';
 
 export const modules = [
   ConfigModule.forRoot({
@@ -35,10 +34,8 @@ export const modules = [
   MailModule,
   UserModule,
   KycModule,
-  FileUploadModule,
   PropertyModule,
   ListingModule,
-  RentalAgreementModule,
   PropertyBookingModule,
   PurchaseModule,
   PropertyDocumentModule,

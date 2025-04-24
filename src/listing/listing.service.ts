@@ -5,13 +5,14 @@ import {
   ListingFilterDto,
   UpdateListingDto,
 } from './dto/index.dto';
-import { PaginationQueryDto } from '@utils/pagination.dto';
+import { PaginatedResponse, PaginationQueryDto } from '@utils/pagination';
+import { Listing } from '@prisma/client';
 
 @Injectable()
 export class ListingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createListing(body: CreateListingDto) {
+  async createListing(body: CreateListingDto): Promise<Listing> {
     const { propertyId, listedById, ...listingData } = body;
 
     //check if property nd user exists
@@ -32,7 +33,7 @@ export class ListingService {
       throw new NotFoundException('User not found');
     }
 
-    const listing = await this.prisma.listing.create({
+    return await this.prisma.listing.create({
       data: {
         ...listingData,
         property: {
@@ -46,24 +47,20 @@ export class ListingService {
         property: true,
         listedBy: {
           select: {
-            username: true,
-            firstname: true,
-            lastname: true,
+            fullname: true,
             email: true,
           },
         },
       },
     });
-    return {
-      message: 'Listing created successfully',
-      data: listing,
-    };
   }
 
-  async findAllListings(filters: ListingFilterDto) {
-    const { status, listingType, minPrice, maxPrice, location } = filters;
+  async findAllListings(
+    filters: ListingFilterDto,
+  ): Promise<PaginatedResponse<Listing>> {
+    const { status, listingType, minPrice, maxPrice, location, skip, take } =
+      filters;
 
-    const { skip, take } = filters;
     const [listings, total] = await Promise.all([
       this.prisma.listing.findMany({
         where: {
@@ -85,9 +82,7 @@ export class ListingService {
           property: true,
           listedBy: {
             select: {
-              username: true,
-              firstname: true,
-              lastname: true,
+              fullname: true,
               email: true,
             },
           },
@@ -110,7 +105,6 @@ export class ListingService {
       }),
     ]);
     return {
-      message: 'Listings fetched successfully',
       data: listings,
       total,
       skip,
@@ -118,7 +112,7 @@ export class ListingService {
     };
   }
 
-  async findListingById(id: string) {
+  async findListingById(id: string): Promise<Listing> {
     const listing = await this.prisma.listing.findUnique({
       where: { id },
       include: { property: true, listedBy: true },
@@ -127,13 +121,13 @@ export class ListingService {
     if (!listing) {
       throw new NotFoundException(`Listing not found`);
     }
-    return {
-      message: 'Listing fetched successfully',
-      data: listing,
-    };
+    return listing;
   }
 
-  async findListingsByUser(userId: string, pagination: PaginationQueryDto) {
+  async findListingsByUser(
+    userId: string,
+    pagination: PaginationQueryDto,
+  ): Promise<PaginatedResponse<Listing>> {
     const { skip, take } = pagination;
     const [listings, total] = await Promise.all([
       this.prisma.listing.findMany({
@@ -148,16 +142,17 @@ export class ListingService {
     ]);
 
     return {
-      message: 'Listings fetched successfully',
       data: listings,
       total,
+      skip,
+      take,
     };
   }
 
   async findListingsByProperty(
     propertyId: string,
     pagination: PaginationQueryDto,
-  ) {
+  ): Promise<PaginatedResponse<Listing>> {
     const { skip, take } = pagination;
 
     const [listings, total] = await Promise.all([
@@ -173,42 +168,34 @@ export class ListingService {
     ]);
 
     return {
-      message: 'Listings fetched successfully',
       data: listings,
       total,
+      skip,
+      take,
     };
   }
-  async updateListing(id: string, dto: UpdateListingDto) {
+  async updateListing(id: string, dto: UpdateListingDto): Promise<Listing> {
     await this.findListingById(id);
     const listing = await this.prisma.listing.update({
       where: { id },
       data: dto,
     });
-    return {
-      message: 'Listing updated successfully',
-      data: listing,
-    };
+    return listing;
   }
 
   async deleteListing(id: string) {
-    await this.prisma.listing.delete({
+    return await this.prisma.listing.delete({
       where: { id },
     });
-    return {
-      message: 'Listing deleted successfully',
-    };
   }
 
   //update listing status
-  async updateListingStatus(id: string, isActive: boolean) {
+  async updateListingStatus(id: string, isActive: boolean): Promise<Listing> {
     await this.findListingById(id);
     const listing = await this.prisma.listing.update({
       where: { id },
       data: { isActive },
     });
-    return {
-      message: 'Listing status updated successfully',
-      data: listing,
-    };
+    return listing;
   }
 }

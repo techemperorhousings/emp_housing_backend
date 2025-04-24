@@ -1,22 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { CreateReviewDto } from './dto/index.dto';
+import { Review } from '@prisma/client';
 
 @Injectable()
 export class ReviewService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createReview(dto: CreateReviewDto, userId: string) {
+  async createReview(dto: CreateReviewDto, userId: string): Promise<Review> {
     // Ensure user and property exists
-    const [user, property] = await Promise.all([
-      this.prisma.user.findUnique({
-        where: { id: userId },
-      }),
-      this.prisma.property.findUnique({
-        where: { id: dto.propertyId },
-      }),
-    ]);
-    if (!user) throw new NotFoundException('User not found');
+    const property = await this.prisma.property.findUnique({
+      where: { id: dto.propertyId },
+    });
 
     if (!property) throw new NotFoundException('Property not found');
 
@@ -41,34 +36,29 @@ export class ReviewService {
       },
     });
 
-    return {
-      message: 'Review created successfully',
-      review,
-    };
+    return review;
   }
 
-  async getReviewById(id: string) {
+  //get all reviews
+  async getAllReviews(): Promise<Review[]> {
+    return await this.prisma.review.findMany({});
+  }
+
+  async getReviewById(id: string): Promise<Review> {
     const review = await this.prisma.review.findUnique({
       where: { id },
       include: { user: true, property: true },
     });
     if (!review) throw new NotFoundException('Review not found');
 
-    return {
-      message: 'Review fetched successfully',
-      data: review,
-    };
+    return review;
   }
 
-  async getReviewsForProperty(propertyId: string) {
-    const reviews = await this.prisma.review.findMany({
+  async getReviewsForProperty(propertyId: string): Promise<Review[]> {
+    return await this.prisma.review.findMany({
       where: { propertyId },
       include: { user: true },
     });
-    return {
-      message: 'Reviews fetched successfully',
-      data: reviews,
-    };
   }
 
   //delete own review
@@ -81,12 +71,15 @@ export class ReviewService {
       throw new NotFoundException('Review not found or not owned by the user');
     }
 
-    await this.prisma.review.delete({
+    return await this.prisma.review.delete({
       where: { id },
     });
+  }
 
-    return {
-      message: 'Review deleted successfully',
-    };
+  //delete a review
+  async deleteReview(reviewId: string) {
+    return await this.prisma.review.delete({
+      where: { id: reviewId },
+    });
   }
 }

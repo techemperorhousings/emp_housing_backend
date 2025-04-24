@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEnum,
   IsNotEmpty,
@@ -7,6 +7,7 @@ import {
   IsUUID,
 } from 'class-validator';
 import { TourStatus, TourType } from '@prisma/client';
+import { PaginationQueryDto } from '@utils/pagination';
 
 export class CreatePropertyTourDto {
   @ApiProperty({
@@ -122,4 +123,26 @@ export class AddFeedbackDto {
   @IsNotEmpty()
   @IsString()
   feedback: string;
+}
+
+export class FilterDto extends PaginationQueryDto {
+  @ApiPropertyOptional({
+    enum: TourStatus,
+    description: 'Filter by tour status',
+  })
+  @IsOptional()
+  @IsEnum(TourStatus)
+  status: TourStatus;
+}
+
+export class AssignAgentDto {
+  @ApiProperty({
+    description: 'Agent ID',
+    type: 'string',
+    required: true,
+    example: 'ba9f1581-a991-49a6-ad75-0edea1da523e',
+  })
+  @IsNotEmpty()
+  @IsString()
+  agentId: string;
 }

@@ -37,3 +37,10 @@ export class PaginationQueryDto {
   @IsString()
   sortOrder?: 'asc' | 'desc' = 'desc';
 }
+
+export class PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  skip: number;
+  take: number;
+}
