@@ -19,6 +19,7 @@ import { PropertyTourModule } from '@property-tour/property-tour.module';
 import { RentalPaymentModule } from '@rental-payment/rental-payment.module';
 import { ReviewModule } from '@review/review.module';
 import { SupportTicketModule } from '@support-ticket/support-ticket.module';
+import { ChatModule } from '@chat/chat.module';
 
 export const modules = [
   ConfigModule.forRoot({
@@ -30,6 +31,7 @@ export const modules = [
   }),
   PrismaModule,
   AuthenticationModule,
+  ChatModule,
   MailModule,
   UserModule,
   KycModule,
