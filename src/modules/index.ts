@@ -18,6 +18,7 @@ import { ReviewModule } from '@review/review.module';
 import { SupportTicketModule } from '@support-ticket/support-ticket.module';
 import { ChatModule } from '@chat/chat.module';
 import { UserModule } from '@user/user.module';
+import { RoleModule } from '@role/role.module';
 // import { ChatModule } from '@chat/chat.module';
 
 export const modules = [
@@ -45,4 +46,5 @@ export const modules = [
   ReviewModule,
   FavoriteModule,
   SupportTicketModule,
+  RoleModule,
 ];
