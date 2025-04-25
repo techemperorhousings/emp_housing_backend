@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import Operations from './operations';
+import { seedUsersAndRelated } from './db-seed';
 const ops = new Operations();
 
 const prisma = new PrismaClient();
@@ -66,6 +67,9 @@ async function main() {
       }
     }
   }
+
+  // Create users and related data
+  await seedUsersAndRelated(prisma);
 
   console.log('Seeding completed successfully.');
 }
