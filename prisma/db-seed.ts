@@ -11,7 +11,8 @@ export async function seedUsersAndRelated(prisma: PrismaClient) {
         data: {
           email: faker.internet.email().toLowerCase(),
           password,
-          fullname: faker.person.fullName(),
+          firstname: faker.person.firstName(),
+          lastname: faker.person.lastName(),
           phoneNumber: faker.number
             .int({ min: 0, max: 99999999999 })
             .toString()

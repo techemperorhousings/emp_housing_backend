@@ -83,8 +83,8 @@ export class RentalPaymentService {
         rentalAgreement: {
           include: {
             listing: true, // Include listing details if needed
-            landlord: { select: { id: true, fullname: true } },
-            tenant: { select: { id: true, fullname: true } },
+            landlord: { select: { id: true, firstname: true, lastname: true } },
+            tenant: { select: { id: true, firstname: true, lastname: true } },
           },
         },
       },

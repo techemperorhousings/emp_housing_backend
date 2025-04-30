@@ -17,11 +17,20 @@ export class AuthDto {
   readonly email: string;
 
   @ApiProperty({
-    description: 'Full Name',
+    description: 'First Name',
     example: 'John Doe',
   })
   @IsNotEmpty()
-  readonly fullname: string;
+  @IsString()
+  readonly firstname: string;
+
+  @ApiProperty({
+    description: 'Last Name',
+    example: 'Doe',
+  })
+  @IsNotEmpty()
+  @IsString()
+  readonly lastname: string;
 
   @ApiProperty({
     description: 'Phone Number',
