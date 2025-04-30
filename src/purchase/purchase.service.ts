@@ -83,7 +83,7 @@ export class PurchaseService {
             select: { id: true, fullname: true },
           },
           property: {
-            select: { id: true, title: true },
+            select: { id: true, name: true },
           },
         },
       }),
@@ -110,7 +110,7 @@ export class PurchaseService {
           select: { id: true, fullname: true },
         },
         property: {
-          select: { id: true, title: true },
+          select: { id: true, name: true },
         },
       },
     });

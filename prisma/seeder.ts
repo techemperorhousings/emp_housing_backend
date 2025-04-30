@@ -50,8 +50,8 @@ export async function seedUsersAndRelated(prisma: PrismaClient) {
             faker.finance.amount({ min: 80_000, max: 900_000, dec: 2 }),
           ),
           address: faker.location.streetAddress(),
-          type: 'HOUSE',
-          status: 'PENDING',
+          type: 'HOUSE', // Make sure this is a valid enum value
+          status: 'PENDING', // Make sure this is a valid enum value
           ownerId: owner.id,
           isActive: true,
 
