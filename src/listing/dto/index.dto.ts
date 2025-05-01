@@ -92,7 +92,7 @@ export class ListingFilterDto extends PaginationQueryDto {
   @ApiPropertyOptional({ description: 'Search by location' })
   @IsString()
   @IsOptional()
-  location?: string;
+  address?: string;
 }
 
 export class UpdateListingStatusDto {

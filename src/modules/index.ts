@@ -9,7 +9,6 @@ import { PassportModule } from '@nestjs/passport';
 import { OfferModule } from '@offer/offer.module';
 import { PrismaModule } from '@prisma/prisma.module';
 import { PropertyBookingModule } from '@property-booking/property-booking.module';
-import { PropertyDocumentModule } from '@property-document/property-document.module';
 import { PropertyTourModule } from '@property-tour/property-tour.module';
 import { PropertyModule } from '@property/property.module';
 import { PurchaseModule } from '@purchase/purchase.module';
@@ -19,7 +18,7 @@ import { SupportTicketModule } from '@support-ticket/support-ticket.module';
 import { ChatModule } from '@chat/chat.module';
 import { UserModule } from '@user/user.module';
 import { RoleModule } from '@role/role.module';
-// import { ChatModule } from '@chat/chat.module';
+import { FileUploadModule } from '@file-upload/file-upload.module';
 
 export const modules = [
   ConfigModule.forRoot({
@@ -39,7 +38,6 @@ export const modules = [
   ListingModule,
   PropertyBookingModule,
   PurchaseModule,
-  PropertyDocumentModule,
   RentalPaymentModule,
   PropertyTourModule,
   OfferModule,
@@ -47,4 +45,5 @@ export const modules = [
   FavoriteModule,
   SupportTicketModule,
   RoleModule,
+  FileUploadModule,
 ];

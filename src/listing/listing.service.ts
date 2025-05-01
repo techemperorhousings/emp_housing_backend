@@ -59,7 +59,7 @@ export class ListingService {
   async findAllListings(
     filters: ListingFilterDto,
   ): Promise<PaginatedResponse<Listing>> {
-    const { status, listingType, minPrice, maxPrice, location, skip, take } =
+    const { status, listingType, minPrice, maxPrice, address, skip, take } =
       filters;
 
     const [listings, total] = await Promise.all([
@@ -72,8 +72,8 @@ export class ListingService {
             lte: maxPrice, // Less than or equal to
           },
           property: {
-            location: location
-              ? { contains: location, mode: 'insensitive' }
+            address: address
+              ? { contains: address, mode: 'insensitive' }
               : undefined,
           },
         },
@@ -99,8 +99,8 @@ export class ListingService {
             lte: maxPrice,
           },
           property: {
-            location: location
-              ? { contains: location, mode: 'insensitive' }
+            address: address
+              ? { contains: address, mode: 'insensitive' }
               : undefined,
           },
         },

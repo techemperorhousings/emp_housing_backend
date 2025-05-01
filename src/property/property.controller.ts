@@ -16,7 +16,6 @@ import { PropertyService } from './property.service';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import {
   CreatePropertyDto,
-  FeatureDto,
   PropertyFilterDto,
   PropertyStatusDto,
   UpdatePropertyDto,
@@ -34,9 +33,12 @@ export class PropertyController {
   @Post()
   @ApiOperation({ summary: 'Create a new property' })
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createPropertyDto: CreatePropertyDto) {
-    const property =
-      await this.propertyService.createProperty(createPropertyDto);
+  async create(@Body() createPropertyDto: CreatePropertyDto, @Req() req) {
+    const payload = {
+      ...createPropertyDto,
+      ownerId: req.user.id,
+    };
+    const property = await this.propertyService.createProperty(payload);
     return {
       message: 'Property created successfully',
       ...property,
@@ -66,27 +68,6 @@ export class PropertyController {
     return {
       message: 'Property status updated successfully',
       ...property,
-    };
-  }
-
-  @Patch(':id/feature/:featureId')
-  @OwnerResource('property')
-  @UseGuards(OwnerGuard)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update a property feature' })
-  async updateFeature(
-    @Param('id') propertyId: string,
-    @Param('featureId') featureId: string,
-    @Body() feature: FeatureDto,
-  ) {
-    const _feature = await this.propertyService.updateFeature(
-      propertyId,
-      featureId,
-      feature,
-    );
-    return {
-      message: 'Property feature updated successfully',
-      ..._feature,
     };
   }
 
@@ -145,50 +126,6 @@ export class PropertyController {
       ...property,
     };
   }
-
-  @Delete(':id/document/:documentId')
-  @HttpCode(HttpStatus.OK)
-  @OwnerResource('property')
-  @UseGuards(OwnerGuard)
-  @ApiOperation({ summary: 'Delete a property document' })
-  async deleteDocument(
-    @Param('id') propertyId: string,
-    @Param('documentId') documentId: string,
-  ) {
-    await this.propertyService.removeDocument(propertyId, documentId);
-    return {
-      message: 'Property document deleted successfully',
-    };
-  }
-
-  @Delete(':id/image/:imageId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Delete a property image' })
-  async deleteImage(
-    @Param('id') id: string,
-    @Param('imageId') imageId: string,
-  ) {
-    await this.propertyService.removeImage(id, imageId);
-    return {
-      message: 'Property image deleted successfully',
-    };
-  }
-
-  @Delete(':id/feature/featureId')
-  @HttpCode(HttpStatus.OK)
-  @OwnerResource('property')
-  @UseGuards(OwnerGuard)
-  @ApiOperation({ summary: 'Delete a property feature' })
-  async deleteFeature(
-    @Param('id') propertyId: string,
-    @Param('featureId') featureId: string,
-  ) {
-    await this.propertyService.deleteFeature(propertyId, featureId);
-    return {
-      message: 'Property feature deleted successfully',
-    };
-  }
-
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @OwnerResource('property')

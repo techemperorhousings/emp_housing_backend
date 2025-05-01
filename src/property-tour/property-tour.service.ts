@@ -54,7 +54,7 @@ export class PropertyTourService {
       include: {
         property: {
           select: {
-            title: true,
+            name: true,
           },
         },
       },

@@ -113,7 +113,7 @@ export class RentalPaymentService {
         },
         listing: {
           select: {
-            property: { select: { title: true } },
+            property: { select: { name: true } },
           },
         },
       },
