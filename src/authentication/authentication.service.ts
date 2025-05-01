@@ -2,8 +2,6 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
-  InternalServerErrorException,
-  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -56,10 +54,7 @@ export class AuthenticationService {
     const [existingUser, roleExists] = await Promise.all([
       this.prisma.user.findFirst({
         where: {
-          OR: [
-            { email: params.email },
-            { fullname: params.fullname, phoneNumber: params.phoneNumber },
-          ],
+          OR: [{ email: params.email }, { phoneNumber: params.phoneNumber }],
         },
       }),
       this.prisma.role.findUnique({
@@ -71,7 +66,7 @@ export class AuthenticationService {
 
     if (existingUser) {
       throw new ForbiddenException(
-        'A user with this email or username or phone number already exists.',
+        'A user with this email or phone number already exists.',
       );
     }
     if (!roleExists) {
@@ -86,7 +81,8 @@ export class AuthenticationService {
       const user = await this.prisma.user.create({
         data: {
           email: params.email,
-          fullname: params.fullname,
+          firstname: params.firstname,
+          lastname: params.lastname,
           password: hash,
           phoneNumber: params.phoneNumber,
           profileImage: params.profileImage,
@@ -102,10 +98,7 @@ export class AuthenticationService {
 
       return this.signToken(user);
     } catch (error) {
-      Logger.error('Unexpected error during user signup:', error);
-      throw new InternalServerErrorException(
-        'An unexpected error occurred. Please try again later.',
-      );
+      throw error;
     }
   }
 
@@ -144,8 +137,7 @@ export class AuthenticationService {
 
       return this.signToken(user);
     } catch (error) {
-      Logger.error(error);
-      throw new Error(error);
+      throw error;
     }
   }
 
@@ -227,10 +219,7 @@ export class AuthenticationService {
 
       // return response;
     } catch (error) {
-      Logger.error(error);
-      throw new InternalServerErrorException(
-        'An unexpected error occurred. Please try again later.',
-      );
+      throw error;
     }
   }
 
