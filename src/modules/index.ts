@@ -18,7 +18,7 @@ import { SupportTicketModule } from '@support-ticket/support-ticket.module';
 import { ChatModule } from '@chat/chat.module';
 import { UserModule } from '@user/user.module';
 import { RoleModule } from '@role/role.module';
-// import { ChatModule } from '@chat/chat.module';
+import { FileUploadModule } from '@file-upload/file-upload.module';
 
 export const modules = [
   ConfigModule.forRoot({
@@ -45,4 +45,5 @@ export const modules = [
   FavoriteModule,
   SupportTicketModule,
   RoleModule,
+  FileUploadModule,
 ];
