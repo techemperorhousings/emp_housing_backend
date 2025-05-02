@@ -49,6 +49,9 @@ export class PropertyService {
     const [properties, total] = await Promise.all([
       this.prisma.property.findMany({
         where,
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
       }),
       this.prisma.property.count({ where }),
     ]);
@@ -80,6 +83,7 @@ export class PropertyService {
         where: { ownerId: userId },
         skip,
         take,
+        orderBy: { createdAt: 'desc' },
       }),
       this.prisma.property.count({ where: { ownerId: userId } }),
     ]);
