@@ -13,20 +13,20 @@ import { FileUploadService } from './file-upload.service';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiOperation,
-  ApiBearerAuth,
   ApiBody,
   ApiResponse,
   ApiConsumes,
   ApiTags,
 } from '@nestjs/swagger';
 import { UploadFileDto, UploadMultipleFilesDto } from './dto/index.dto';
+import { Public } from '@decorators/index.decorator';
 @ApiTags('File Upload')
-@ApiBearerAuth('JWT-auth')
 @Controller('file-upload')
 export class FileUploadController {
   constructor(private readonly service: FileUploadService) {}
 
   //upload one file
+  @Public()
   @ApiOperation({ summary: 'Upload one file' })
   @HttpCode(HttpStatus.OK)
   @ApiConsumes('multipart/form-data')
@@ -48,6 +48,7 @@ export class FileUploadController {
   }
 
   // Upload multiple images
+  @Public()
   @ApiOperation({ summary: 'Upload multiple files' })
   @HttpCode(HttpStatus.OK)
   @ApiConsumes('multipart/form-data')
@@ -75,6 +76,7 @@ export class FileUploadController {
   }
 
   // Delete a file
+  @Public()
   @ApiOperation({ summary: 'Delete a file from Cloudinary' })
   @HttpCode(HttpStatus.OK)
   @ApiResponse({
