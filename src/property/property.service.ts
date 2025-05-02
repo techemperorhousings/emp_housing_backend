@@ -24,7 +24,7 @@ export class PropertyService {
   async findAll(
     pagination: PaginationQueryDto,
     filters?: any,
-  ): Promise<PaginatedResponse<Property>> {
+  ): Promise<PaginatedResponse<Record<string, any>>> {
     const { skip, take } = pagination;
 
     // Prepare the where clause with text search capabilities
@@ -52,6 +52,14 @@ export class PropertyService {
         skip,
         take,
         orderBy: { createdAt: 'desc' },
+        include: {
+          owner: {
+            select: {
+              firstname: true,
+              lastname: true,
+            },
+          },
+        },
       }),
       this.prisma.property.count({ where }),
     ]);
@@ -75,7 +83,7 @@ export class PropertyService {
   async findAllByUser(
     userId: string,
     pagination: PaginationQueryDto,
-  ): Promise<PaginatedResponse<Property>> {
+  ): Promise<PaginatedResponse<Record<string, any>>> {
     const { skip, take } = pagination;
 
     const [properties, total] = await Promise.all([
@@ -84,6 +92,14 @@ export class PropertyService {
         skip,
         take,
         orderBy: { createdAt: 'desc' },
+        include: {
+          owner: {
+            select: {
+              firstname: true,
+              lastname: true,
+            },
+          },
+        },
       }),
       this.prisma.property.count({ where: { ownerId: userId } }),
     ]);
@@ -104,6 +120,14 @@ export class PropertyService {
           { description: { contains: query, mode: 'insensitive' } },
           { address: { contains: query, mode: 'insensitive' } },
         ],
+      },
+      include: {
+        owner: {
+          select: {
+            firstname: true,
+            lastname: true,
+          },
+        },
       },
     });
   }
