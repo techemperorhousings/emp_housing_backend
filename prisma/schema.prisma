@@ -87,6 +87,7 @@ model Property {
   address     String
   type        PropertyType
   status      PropertyStatus @default(PENDING)
+  listingType ListingType  @default(FOR_SALE)
   ownerId     String
   owner       User           @relation("PropertyOwner", fields: [ownerId], references: [id])
   isActive    Boolean        @default(false)
