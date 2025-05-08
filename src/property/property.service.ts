@@ -75,6 +75,14 @@ export class PropertyService {
   async findOne(id: string): Promise<Property> {
     const property = await this.prisma.property.findUnique({
       where: { id },
+      include: {
+        owner: {
+          select: {
+            firstname: true,
+            lastname: true,
+          },
+        },
+      },
     });
     if (!property) throw new NotFoundException('Property not found');
     return property;
@@ -102,6 +110,49 @@ export class PropertyService {
         },
       }),
       this.prisma.property.count({ where: { ownerId: userId } }),
+    ]);
+
+    return {
+      data: properties,
+      total,
+      skip,
+      take,
+    };
+  }
+
+  //get related properties
+  async getRelatedProperties(
+    propertyId: string,
+    pagination: PaginationQueryDto,
+  ): Promise<PaginatedResponse<Record<string, any>>> {
+    const { skip, take } = pagination;
+
+    const property = await this.findOne(propertyId);
+
+    const [properties, total] = await Promise.all([
+      this.prisma.property.findMany({
+        where: {
+          id: { not: propertyId },
+          type: property.type,
+        },
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          owner: {
+            select: {
+              firstname: true,
+              lastname: true,
+            },
+          },
+        },
+      }),
+      this.prisma.property.count({
+        where: {
+          id: { not: propertyId },
+          type: property.type,
+        },
+      }),
     ]);
 
     return {
@@ -158,6 +209,14 @@ export class PropertyService {
     return await this.prisma.property.update({
       where: { id },
       data: { status },
+      include: {
+        owner: {
+          select: {
+            firstname: true,
+            lastname: true,
+          },
+        },
+      },
     });
   }
 }

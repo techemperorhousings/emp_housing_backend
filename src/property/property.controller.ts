@@ -98,6 +98,23 @@ export class PropertyController {
     };
   }
 
+  @Get(':id/related')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get related properties' })
+  async getRelatedProperties(
+    @Param('id') id: string,
+    @Query() paginationDto: PaginationQueryDto,
+  ) {
+    const properties = await this.propertyService.getRelatedProperties(
+      id,
+      paginationDto,
+    );
+    return {
+      message: 'Related properties fetched successfully',
+      ...properties,
+    };
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Find a property by ID' })
   async findOne(@Param('id') id: string) {
