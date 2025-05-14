@@ -1,8 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { UpdatePropertyDto } from './dto/index.dto';
 import { PaginatedResponse, PaginationQueryDto } from '@utils/pagination';
-import { Property, PropertyStatus } from '@prisma/client';
+import { Property, PropertyStatus, Report } from '@prisma/client';
 
 @Injectable()
 export class PropertyService {
@@ -194,9 +198,44 @@ export class PropertyService {
     });
   }
 
+  async requestPropertyDeletion(
+    id: string,
+    reason?: string,
+  ): Promise<Property> {
+    const property = await this.findOne(id);
+    if (property.deletionRequested)
+      throw new BadRequestException('Deletion already requested');
+
+    return await this.prisma.property.update({
+      where: { id },
+      data: {
+        deletionRequested: true,
+        deletionReason: reason,
+      },
+    });
+  }
+
+  async getPropertiesRequestingDeletion(): Promise<Property[]> {
+    return this.prisma.property.findMany({
+      where: { deletionRequested: true },
+    });
+  }
+
   async deleteProperty(id: string) {
     await this.findOne(id);
     return await this.prisma.property.delete({ where: { id } });
+  }
+
+  //cancel property deletion
+  async cancelPropertyDeletion(id: string): Promise<Property> {
+    await this.findOne(id);
+    return await this.prisma.property.update({
+      where: { id },
+      data: {
+        deletionRequested: false,
+        deletionReason: null,
+      },
+    });
   }
 
   //update property status
@@ -217,6 +256,35 @@ export class PropertyService {
           },
         },
       },
+    });
+  }
+
+  //report property
+  async reportProperty(
+    id: string,
+    userId: string,
+    reason: string,
+  ): Promise<Report> {
+    await this.findOne(id);
+
+    return this.prisma.report.create({
+      data: {
+        reason,
+        property: { connect: { id } },
+        reportedBy: { connect: { id: userId } },
+      },
+    });
+  }
+
+  async getAllReports(): Promise<Record<string, any>[]> {
+    return this.prisma.report.findMany({
+      include: {
+        property: true,
+        reportedBy: {
+          select: { id: true, email: true, firstname: true, lastname: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 }

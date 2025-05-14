@@ -62,6 +62,7 @@ model User {
 
   sentChats     Chat[] @relation("SentChats")
   receivedChats Chat[] @relation("receivedChats")
+  reports   Report[]
 }
 
 model KYC {
@@ -94,6 +95,9 @@ model Property {
   features    String[]
   images       String[]
   propertyDocument String
+  deletionRequested Boolean  @default(false)
+  deletionReason    String?
+
  
 
   // Property details
@@ -113,6 +117,7 @@ model Property {
   PropertyBooking     PropertyBooking[]
   favorites           Favorite[]
   tickets             SupportTicket[]
+  reports   Report[]
 
   
   @@index([ownerId])
@@ -440,6 +445,19 @@ model Chat {
   @@index([createdAt])
 }
 
+model Report {
+  id          String   @id @default(uuid())
+  reason      String
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id])
+  reportedById String
+  reportedBy   User     @relation(fields: [reportedById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  status      ReportStatus @default(PENDING)
+}
+
+
 enum APP_STATUS {
   ACTIVE
   INACTIVE
@@ -554,4 +572,10 @@ enum OfferStatus {
   ACCEPTED
   REJECTED
   WITHDRAWN
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  REJECTED
 }

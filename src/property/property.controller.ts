@@ -16,13 +16,16 @@ import { PropertyService } from './property.service';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import {
   CreatePropertyDto,
+  DeletePropertyDto,
   PropertyFilterDto,
   PropertyStatusDto,
+  ReportPropertyDto,
   UpdatePropertyDto,
 } from './dto/index.dto';
 import { OwnerResource, Public } from '@decorators/index.decorator';
 import { OwnerGuard } from '@guards/owner.guard';
 import { PaginationQueryDto } from '@utils/pagination';
+import { AdminGuard } from '@guards/admin.guard';
 
 @ApiTags('Properties')
 @ApiBearerAuth('JWT-auth')
@@ -98,6 +101,21 @@ export class PropertyController {
     };
   }
 
+  @Get('request-deletion')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: 'Get all properties requesting deletion (Admin Only)',
+  })
+  async getPropertiesRequestingDeletion() {
+    const properties =
+      await this.propertyService.getPropertiesRequestingDeletion();
+    return {
+      message: 'Properties requesting deletion fetched successfully',
+      ...properties,
+    };
+  }
+
   @Get(':id/related')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get related properties' })
@@ -125,6 +143,37 @@ export class PropertyController {
     };
   }
 
+  @Patch(':id/request-deletion')
+  @HttpCode(HttpStatus.OK)
+  @OwnerResource('property')
+  @UseGuards(OwnerGuard)
+  @ApiOperation({ summary: 'Request property deletion' })
+  async requestDeletion(
+    @Param('id') id: string,
+    @Body() body: DeletePropertyDto,
+  ) {
+    const property = await this.propertyService.requestPropertyDeletion(
+      id,
+      body.reason,
+    );
+    return {
+      message: 'Property deletion requested successfully',
+      ...property,
+    };
+  }
+
+  @Patch(':id/cancel-deletion')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Cancel property deletion (Admin Only)' })
+  async cancelDeletion(@Param('id') id: string) {
+    const property = await this.propertyService.cancelPropertyDeletion(id);
+    return {
+      message: 'Property deletion cancelled successfully',
+      ...property,
+    };
+  }
+
   @Patch(':id')
   @OwnerResource('property')
   @UseGuards(OwnerGuard)
@@ -143,15 +192,37 @@ export class PropertyController {
       ...property,
     };
   }
-  @Delete(':id')
+
+  @Delete(':id/approve-deletion')
   @HttpCode(HttpStatus.OK)
-  @OwnerResource('property')
-  @UseGuards(OwnerGuard)
-  @ApiOperation({ summary: 'Delete a property' })
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Approve deletion of a property (Admin Only)' })
   async delete(@Param('id') id: string) {
     await this.propertyService.deleteProperty(id);
     return {
       message: 'Property deleted successfully',
+    };
+  }
+
+  @Post(':id')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Report a property',
+  })
+  async reportProperty(
+    @Param('id') id: string,
+    @Body() body: ReportPropertyDto,
+    @Req() req,
+  ) {
+    const { reason } = body;
+    const property = await this.propertyService.reportProperty(
+      id,
+      req.user.id,
+      reason,
+    );
+    return {
+      message: 'Property reported successfully',
+      ...property,
     };
   }
 }

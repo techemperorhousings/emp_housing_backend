@@ -10,6 +10,7 @@ import {
 } from 'class-validator';
 import { PropertyStatus, PropertyType } from '@prisma/client';
 import { PaginationQueryDto } from '@utils/pagination';
+import { Transform } from 'class-transformer';
 
 export class CreatePropertyDto {
   @ApiProperty({
@@ -218,4 +219,26 @@ export class PropertyStatusDto {
   @IsNotEmpty()
   @IsUUID()
   id: string;
+}
+
+export class DeletePropertyDto {
+  @ApiProperty({
+    example: 'the property is fake',
+    description: 'Reason for deleting the property',
+  })
+  @IsNotEmpty()
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  reason: string;
+}
+
+export class ReportPropertyDto {
+  @ApiProperty({
+    example: 'the property is fake',
+    description: 'Reason for reporting the property',
+  })
+  @IsNotEmpty()
+  @IsString()
+  @Transform(({ value }) => value.trim())
+  reason: string;
 }
