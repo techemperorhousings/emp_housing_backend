@@ -77,8 +77,11 @@ export class PropertyService {
   }
 
   async findOne(id: string): Promise<Property> {
-    const property = await this.prisma.property.findUnique({
+    const updated = await this.prisma.property.update({
       where: { id },
+      data: {
+        views: { increment: 1 },
+      },
       include: {
         owner: {
           select: {
@@ -88,8 +91,8 @@ export class PropertyService {
         },
       },
     });
-    if (!property) throw new NotFoundException('Property not found');
-    return property;
+    if (!updated) throw new NotFoundException('Property not found');
+    return updated;
   }
 
   async findAllByUser(

@@ -97,6 +97,7 @@ model Property {
   propertyDocument String
   deletionRequested Boolean  @default(false)
   deletionReason    String?
+  views            Int        @default(0)
 
  
 
