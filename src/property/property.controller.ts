@@ -74,12 +74,15 @@ export class PropertyController {
     };
   }
 
-  @Get('user')
+  @Get('user/:userId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all properties owned by user' })
-  async findAllByUser(@Req() req, @Query() paginationDto: PaginationQueryDto) {
+  async findAllByUser(
+    @Param('userId') userId: string,
+    @Query() paginationDto: PaginationQueryDto,
+  ) {
     const properties = await this.propertyService.findAllByUser(
-      req.user.id,
+      userId,
       paginationDto,
     );
     return {
