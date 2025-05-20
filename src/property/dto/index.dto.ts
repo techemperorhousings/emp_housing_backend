@@ -8,7 +8,7 @@ import {
   IsUUID,
   IsArray,
 } from 'class-validator';
-import { PropertyStatus, PropertyType } from '@prisma/client';
+import { ListingType, PropertyStatus, PropertyType } from '@prisma/client';
 import { PaginationQueryDto } from '@utils/pagination';
 import { Transform } from 'class-transformer';
 
@@ -184,6 +184,15 @@ export class PropertyFilterDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(PropertyStatus)
   status?: PropertyStatus;
+
+  @ApiPropertyOptional({
+    example: ListingType.FOR_RENT,
+    enum: ListingType,
+    description: 'Filter by listing type',
+  })
+  @IsOptional()
+  @IsEnum(ListingType)
+  listingType?: ListingType;
 
   @ApiPropertyOptional({
     example: 'Los Angeles',

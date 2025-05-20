@@ -49,6 +49,7 @@ export class PropertyService {
       // Handle exact matches for other fields that should remain exact
       if (filters.status) where.status = filters.status;
       if (filters.propertyType) where.propertyType = filters.propertyType;
+      if (filters.listingType) where.listingType = filters.listingType;
     }
     const [properties, total] = await Promise.all([
       this.prisma.property.findMany({
