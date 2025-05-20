@@ -70,13 +70,13 @@ export class KycService {
     };
   }
 
-  //get kyc by id
-  async getKycById(kycId: string): Promise<KYC> {
+  //get kyc by user id
+  async getKycById(userId: string): Promise<KYC> {
     const kyc = await this.prisma.kYC.findUnique({
-      where: { id: kycId },
+      where: { userId },
     });
     if (!kyc) {
-      throw new NotFoundException('KYC record not found');
+      throw new NotFoundException('KYC for user record not found');
     }
     return kyc;
   }

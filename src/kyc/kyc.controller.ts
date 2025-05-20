@@ -61,13 +61,13 @@ export class KycController {
     };
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get specific KYC submission by ID' })
+  @Get('/user/:userId')
+  @ApiOperation({ summary: 'Get specific KYC submission by user ID' })
   @ApiResponse({
     status: 200,
     description: 'KYC submission retrieved successfully',
   })
-  async getKycById(@Param('id') id: string) {
+  async getKycById(@Param('userId') id: string) {
     const kyc = await this.kycService.getKycById(id);
     return {
       message: 'KYC fetched successfully',
