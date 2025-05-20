@@ -21,17 +21,20 @@ import {
   UpdateUserRoleDto,
   UpdateUserStatusDto,
 } from './dto/index.dto';
-import { PaginationQueryDto } from '@utils/pagination';
+import { FilterUsersDto } from './dto/FilterUsers.dto';
+import { Public } from '@decorators/index.decorator';
 
 @ApiBearerAuth('JWT-auth')
 @Controller('users')
 export class UserController {
   constructor(private readonly service: UserService) {}
 
+  @Public()
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all users with pagination' })
-  async findAll(@Query() query: PaginationQueryDto) {
+  @ApiOperation({ summary: 'Get all users with pagination and filters' })
+  async findAll(@Query() query: FilterUsersDto) {
+    console.log(query)
     return this.service.findAll(query);
   }
 
