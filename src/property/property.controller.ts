@@ -19,6 +19,7 @@ import {
   DeletePropertyDto,
   PropertyFilterDto,
   PropertyStatusDto,
+  RejectPropertyDto,
   ReportPropertyDto,
   UpdatePropertyDto,
 } from './dto/index.dto';
@@ -48,6 +49,7 @@ export class PropertyController {
     };
   }
 
+  @Public()
   @Get()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all properties with optional filters' })
@@ -60,7 +62,6 @@ export class PropertyController {
   }
 
   @Patch(':id/status/:status')
-  @HttpCode(HttpStatus.OK)
   @HttpCode(HttpStatus.OK)
   async updateStatus(@Param() param: PropertyStatusDto) {
     const { id, status } = param;
@@ -87,19 +88,6 @@ export class PropertyController {
     );
     return {
       message: 'Properties fetched successfully',
-      ...properties,
-    };
-  }
-
-  @Public()
-  @Get('search')
-  @ApiOperation({
-    summary: 'Search for properties by title, description, or location',
-  })
-  async search(@Query('query') query: string) {
-    const properties = await this.propertyService.search(query);
-    return {
-      message: 'Properties found successfully',
       ...properties,
     };
   }
@@ -148,7 +136,7 @@ export class PropertyController {
 
   @Patch(':id/request-deletion')
   @HttpCode(HttpStatus.OK)
-  @OwnerResource('property')
+  @OwnerResource()
   @UseGuards(OwnerGuard)
   @ApiOperation({ summary: 'Request property deletion' })
   async requestDeletion(
@@ -177,8 +165,35 @@ export class PropertyController {
     };
   }
 
+  @Patch(':id/approve')
+  @UseGuards(AdminGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Approve property (Admin only)' })
+  async approveProperty(@Param('id') id: string) {
+    const updated = await this.propertyService.updateStatus(id, 'APPROVED');
+    return {
+      message: 'Property approved successfully',
+      ...updated,
+    };
+  }
+
+  @Patch(':id/reject')
+  @UseGuards(AdminGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reject property with reason (Admin only)' })
+  async rejectProperty(
+    @Param('id') id: string,
+    @Body() dto: RejectPropertyDto,
+  ) {
+    const updated = await this.propertyService.rejectProperty(id, dto.reason);
+    return {
+      message: 'Property rejected successfully',
+      ...updated,
+    };
+  }
+
   @Patch(':id')
-  @OwnerResource('property')
+  @OwnerResource()
   @UseGuards(OwnerGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a property' })

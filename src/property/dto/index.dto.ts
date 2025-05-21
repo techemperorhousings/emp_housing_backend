@@ -131,34 +131,6 @@ export class CreatePropertyDto {
 
 export class UpdatePropertyDto extends PartialType(CreatePropertyDto) {}
 
-export class SearchQueryDto {
-  @ApiPropertyOptional({
-    example: 'Los Angeles',
-    description: 'Filter properties by location',
-  })
-  @IsOptional()
-  @IsString()
-  location?: string;
-
-  @ApiPropertyOptional({
-    example: PropertyType.APARTMENT,
-    enum: PropertyType,
-    description: 'Filter by property type',
-  })
-  @IsOptional()
-  @IsEnum(PropertyType)
-  type?: PropertyType;
-
-  @ApiPropertyOptional({
-    example: PropertyStatus.SOLD,
-    enum: PropertyStatus,
-    description: 'Filter by property status',
-  })
-  @IsOptional()
-  @IsEnum(PropertyStatus)
-  status?: PropertyStatus;
-}
-
 export class PropertyFilterDto extends PaginationQueryDto {
   @ApiPropertyOptional({
     example: 500000,
@@ -210,6 +182,11 @@ export class PropertyFilterDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(PropertyType)
   type?: PropertyType;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  search?: string;
 }
 
 export class PropertyStatusDto {
@@ -249,5 +226,15 @@ export class ReportPropertyDto {
   @IsNotEmpty()
   @IsString()
   @Transform(({ value }) => value.trim())
+  reason: string;
+}
+
+export class RejectPropertyDto {
+  @ApiProperty({
+    description: 'Reason for rejecting the property',
+    example: 'The property description is incomplete or misleading',
+  })
+  @IsString()
+  @IsNotEmpty({ message: 'Rejection reason is required' })
   reason: string;
 }
