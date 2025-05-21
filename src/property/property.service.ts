@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,6 +16,24 @@ export class PropertyService {
   async createProperty(body): Promise<Property> {
     const { ownerId, ...propertyData } = body;
 
+    // 1. Get user and their KYC record
+    const user = await this.prisma.user.findUnique({
+      where: { id: ownerId },
+      select: {
+        id: true,
+        kycVerified: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    if (!user.kycVerified) {
+      throw new ForbiddenException(
+        'KYC must be verified before creating a property.',
+      );
+    }
     // Create property
     const newProperty = await this.prisma.property.create({
       data: {
@@ -33,6 +52,15 @@ export class PropertyService {
 
     // Prepare the where clause with text search capabilities
     const where: any = {};
+
+    // Text search on name, description, and address
+    if (filters?.search) {
+      where.OR = [
+        { name: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
+        { address: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
 
     if (filters) {
       if (filters.location) {
@@ -171,26 +199,6 @@ export class PropertyService {
     };
   }
 
-  async search(query: string): Promise<Property[]> {
-    return await this.prisma.property.findMany({
-      where: {
-        OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { description: { contains: query, mode: 'insensitive' } },
-          { address: { contains: query, mode: 'insensitive' } },
-        ],
-      },
-      include: {
-        owner: {
-          select: {
-            firstname: true,
-            lastname: true,
-          },
-        },
-      },
-    });
-  }
-
   async updateProperty(id: string, dto: UpdatePropertyDto): Promise<Property> {
     await this.findOne(id);
 
@@ -289,6 +297,32 @@ export class PropertyService {
         },
       },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updateStatus(
+    id: string,
+    status: 'APPROVED' | 'REJECTED',
+  ): Promise<Property> {
+    const property = await this.prisma.property.findUnique({ where: { id } });
+    if (!property) throw new NotFoundException('Property not found');
+
+    return this.prisma.property.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
+  async rejectProperty(id: string, reason: string): Promise<Property> {
+    const property = await this.prisma.property.findUnique({ where: { id } });
+    if (!property) throw new NotFoundException('Property not found');
+
+    return this.prisma.property.update({
+      where: { id },
+      data: {
+        status: 'REJECTED',
+        deletionReason: reason,
+      },
     });
   }
 }
