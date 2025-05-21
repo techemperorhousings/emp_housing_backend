@@ -76,29 +76,9 @@ export async function seedUsersAndRelated(prisma: PrismaClient) {
     }),
   );
 
-  //  Seed Listings for each property
-  const listings = await Promise.all(
-    properties.map((property) => {
-      const listedBy = faker.helpers.arrayElement(users);
-      return prisma.listing.create({
-        data: {
-          propertyId: property.id,
-          listedById: listedBy.id,
-          price: new Prisma.Decimal(
-            faker.finance.amount({ min: 100_000, max: 1_000_000, dec: 2 }),
-          ),
-          status: 'PENDING',
-          listingType: 'FOR_SALE',
-          isActive: true,
-        },
-      });
-    }),
-  );
-
   console.log('✅ Seed complete:', {
     users: users.length,
     kycs: kycs.length,
     properties: properties.length,
-    listings: listings.length,
   });
 }

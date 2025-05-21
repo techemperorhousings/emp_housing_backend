@@ -36,7 +36,6 @@ model User {
 
   // Relations
   propertiesOwned            Property[]        @relation("PropertyOwner")
-  listings                   Listing[]
   bookings                   PropertyBooking[]
   rentalAgreementsAsTenant   RentalAgreement[] @relation("Tenant")
   rentalAgreementsAsLandlord RentalAgreement[] @relation("Landlord")
@@ -108,47 +107,23 @@ model Property {
   parkingSpace Int
 
   // Relations
-  listings        Listing[]
   purchases       Purchase[]
   tours           PropertyTour[]
   reviews         Review[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  PropertyBooking PropertyBooking[]
+  propertyBooking PropertyBooking[]
   favorites       Favorite[]
   tickets         SupportTicket[]
   reports         Report[]
+  rentals   RentalAgreement[]
+  offers    Offer[]
 
   @@index([ownerId])
   @@index([status])
   @@index([type])
   @@index([price])
   @@index([createdAt])
-}
-
-model Listing {
-  id          String        @id @default(uuid())
-  propertyId  String
-  property    Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  listedById  String
-  listedBy    User          @relation(fields: [listedById], references: [id], onDelete: Restrict)
-  price       Decimal       @db.Decimal(10, 2)
-  isActive    Boolean       @default(true)
-  status      ListingStatus @default(PENDING)
-  listingType ListingType
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  rentals   RentalAgreement[]
-  purchases Purchase[]
-  offers    Offer[]
-  tours     PropertyTour[]
-  bookings  PropertyBooking[]
-  tickets   SupportTicket[]
-
-  @@index([propertyId])
-  @@index([listedById])
-  @@index([status])
 }
 
 model BankAccount {
@@ -180,13 +155,10 @@ model PropertyBooking {
   property        Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   userId          String
   user            User             @relation(fields: [userId], references: [id], onDelete: Restrict)
-  listingId       String
-  listing         Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
   RentalAgreement RentalAgreement?
 
   @@index([propertyId])
   @@index([userId])
-  @@index([listingId])
   @@index([status])
 }
 
@@ -213,17 +185,15 @@ model RentalAgreement {
   landlordId String
   landlord   User   @relation(name: "Landlord", fields: [landlordId], references: [id], onDelete: Restrict)
 
-  listingId String
-  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Restrict)
 
   payments RentalPayment[]
 
-  @@unique([tenantId, listingId, isActive])
-  @@unique([landlordId, listingId, isActive])
+  @@unique([tenantId, propertyId, isActive])
+  @@unique([landlordId, propertyId, isActive])
   @@index([tenantId])
   @@index([landlordId])
-  @@index([listingId])
-  @@index([status])
 }
 
 model RentalPayment {
@@ -256,8 +226,6 @@ model Purchase {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  listingId String
-  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
   buyerId   String
   buyer     User    @relation(name: "Buyer", fields: [buyerId], references: [id], onDelete: Restrict)
 
@@ -266,10 +234,8 @@ model Purchase {
   propertyId String?
   property   Property? @relation(fields: [propertyId], references: [id], onDelete: Restrict)
 
-  @@unique([listingId, buyerId, sellerId])
-  @@index([listingId])
-  @@index([buyerId])
-  @@index([status])
+  @@unique([propertyId, buyerId, sellerId])
+  @@index([propertyId])
 }
 
 model PropertyTour {
@@ -290,9 +256,6 @@ model PropertyTour {
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
-  listingId String
-  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-
   requestedById String
   requestedBy   User   @relation(name: "TourRequester", fields: [requestedById], references: [id], onDelete: Restrict)
 
@@ -301,11 +264,8 @@ model PropertyTour {
 
   @@unique([requestedById, propertyId])
   @@index([propertyId])
-  @@index([listingId])
   @@index([requestedById])
-  @@index([agentId])
   @@index([status])
-  @@index([scheduledDate])
 }
 
 model Offer {
@@ -319,8 +279,8 @@ model Offer {
   buyerId String
   buyer   User   @relation(name: "BuyerOffers", fields: [buyerId], references: [id], onDelete: Restrict)
 
-  listingId String
-  listing   Listing @relation(fields: [listingId], references: [id])
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
 }
 
 model Review {
@@ -368,9 +328,6 @@ model SupportTicket {
 
   propertyId String? // Optional: Related to a specific property
   property   Property? @relation(fields: [propertyId], references: [id])
-
-  listingId String?
-  listing   Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
 
   messages    TicketMessage[]
   attachments TicketAttachment[]
