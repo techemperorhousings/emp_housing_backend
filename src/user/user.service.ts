@@ -44,6 +44,7 @@ export class UserService {
         orderBy: {
           createdAt: 'desc',
         },
+        include: this.includeObj,
       }),
       this.prisma.user.count({
         where: where,
@@ -65,6 +66,7 @@ export class UserService {
   async getOneUser(userId: string): Promise<Record<string, any>> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      include: this.includeObj,
     });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -82,6 +84,7 @@ export class UserService {
     const user = await this.prisma.user.update({
       where: { id },
       data: updateUserDto,
+      include: this.includeObj,
     });
     // Remove password before returning
     const { password, ...safeUser } = user;
@@ -95,6 +98,7 @@ export class UserService {
     await this.getOneUser(id);
     const user = await this.prisma.user.update({
       where: { id },
+      include: this.includeObj,
       data: {
         isActive: updateUserStatusDto.isActive,
       },
@@ -113,6 +117,7 @@ export class UserService {
       data: {
         roleId: updateUserRoleDto.role,
       },
+      include: this.includeObj,
     });
     const { password, ...safeUser } = user;
     return safeUser;
@@ -135,8 +140,17 @@ export class UserService {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: { profileImage: pictureUrl },
+      include: this.includeObj,
     });
     const { password, ...safeUser } = user;
     return { message: 'Profile picture updated successfully', data: safeUser };
   }
+
+  includeObj = {
+    role: {
+      select: {
+        name: true,
+      },
+    },
+  };
 }
