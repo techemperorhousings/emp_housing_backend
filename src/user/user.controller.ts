@@ -31,7 +31,6 @@ import { AdminGuard } from '@guards/admin.guard';
 export class UserController {
   constructor(private readonly service: UserService) {}
 
-  @Public()
   @Get()
   @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
