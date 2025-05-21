@@ -71,7 +71,7 @@ export class KycService {
   }
 
   //get kyc by user id
-  async getKycById(userId: string): Promise<KYC> {
+  async getKycByUserId(userId: string): Promise<KYC> {
     const kyc = await this.prisma.kYC.findUnique({
       where: { userId },
     });
@@ -82,8 +82,8 @@ export class KycService {
   }
 
   //approve kyc
-  async approveKyc(kycId: string, adminId: string): Promise<KYC> {
-    const kyc = await this.getKycById(kycId);
+  async approveKyc(userId: string, adminId: string): Promise<KYC> {
+    const kyc = await this.getKycByUserId(userId);
 
     if (kyc.status === KycStatus.APPROVED) {
       throw new BadRequestException('KYC submission is already approved');
@@ -92,7 +92,7 @@ export class KycService {
     //update kyc status and also user kycVerified
     const _kyc = await this.prisma.$transaction(async (tx) => {
       const updatedKYC = await tx.kYC.update({
-        where: { id: kycId },
+        where: { userId },
         data: { status: KycStatus.APPROVED, reviewerId: adminId, reason: null },
       });
 
@@ -108,11 +108,11 @@ export class KycService {
 
   //reject kyc
   async rejectKyc(
-    kycId: string,
+    userId: string,
     adminId: string,
     reason: string,
   ): Promise<KYC> {
-    const kyc = await this.getKycById(kycId);
+    const kyc = await this.getKycByUserId(userId);
 
     //check if admin exists
     const admin = await this.prisma.user.findUnique({
@@ -127,7 +127,7 @@ export class KycService {
       throw new BadRequestException('KYC submission is already rejected');
     }
     const _kyc = await this.prisma.kYC.update({
-      where: { id: kycId },
+      where: { userId },
       data: { status: KycStatus.REJECTED, reason, reviewerId: adminId },
     });
     return _kyc;

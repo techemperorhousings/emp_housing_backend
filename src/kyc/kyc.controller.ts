@@ -71,30 +71,30 @@ export class KycController {
     status: 200,
     description: 'KYC submission retrieved successfully',
   })
-  async getKycById(@Param('userId') id: string) {
-    const kyc = await this.kycService.getKycById(id);
+  async getKycById(@Param('userId') userId: string) {
+    const kyc = await this.kycService.getKycByUserId(userId);
     return {
       message: 'KYC fetched successfully',
       ...kyc,
     };
   }
 
-  @Patch(':id/approve')
+  @Patch(':userId/approve')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Approve KYC submission' })
   @ApiResponse({
     status: 200,
     description: 'KYC submission approved successfully',
   })
-  async approveKyc(@Param('id') id: string, @Req() req) {
-    const kyc = await this.kycService.approveKyc(id, req.user.id);
+  async approveKyc(@Param('userId') userId: string, @Req() req) {
+    const kyc = await this.kycService.approveKyc(userId, req.user.id);
     return {
       message: 'KYC approved successfully',
       ...kyc,
     };
   }
 
-  @Patch(':id/reject')
+  @Patch(':userId/reject')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Reject KYC submission with reason' })
   @ApiResponse({
@@ -102,12 +102,12 @@ export class KycController {
     description: 'KYC submission rejected successfully',
   })
   async rejectKyc(
-    @Param('id') id: string,
+    @Param('userId') userId: string,
     @Req() req,
     @Body() rejectKycDto: RejectKycDto,
   ) {
     const kyc = await this.kycService.rejectKyc(
-      id,
+      userId,
       req.user.id,
       rejectKycDto.reason,
     );
