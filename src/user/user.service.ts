@@ -31,7 +31,7 @@ export class UserService {
       }),
       ...(role && {
         role: {
-          name: { equals: role, mode: 'insensitive' },
+          name: { equals: role.toUpperCase(), mode: 'insensitive' },
         },
       }),
     };

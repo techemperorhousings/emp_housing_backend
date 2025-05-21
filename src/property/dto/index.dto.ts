@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 import { ListingType, PropertyStatus, PropertyType } from '@prisma/client';
 import { PaginationQueryDto } from '@utils/pagination';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 
 export class CreatePropertyDto {
   @ApiProperty({
@@ -137,6 +137,7 @@ export class PropertyFilterDto extends PaginationQueryDto {
     description: 'Filter properties by minimum price',
   })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   minPrice?: number;
 
@@ -145,6 +146,7 @@ export class PropertyFilterDto extends PaginationQueryDto {
     description: 'Filter properties by maximum price',
   })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   maxPrice?: number;
 

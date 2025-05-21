@@ -1,6 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { PaginationQueryDto } from '@utils/pagination';
-import { Type } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';
 
 export class FilterUsersDto extends PaginationQueryDto {
@@ -26,7 +25,6 @@ export class FilterUsersDto extends PaginationQueryDto {
 
   @ApiPropertyOptional({ description: 'Filter by role name (e.g., admin)' })
   @IsOptional()
-  @Type(() => Boolean)
   @IsString()
   role?: string;
 }

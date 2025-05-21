@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
-import { UpdatePropertyDto } from './dto/index.dto';
+import { PropertyFilterDto, UpdatePropertyDto } from './dto/index.dto';
 import { PaginatedResponse, PaginationQueryDto } from '@utils/pagination';
 import { Property, PropertyStatus, Report } from '@prisma/client';
 
@@ -45,10 +45,9 @@ export class PropertyService {
     return newProperty;
   }
   async findAll(
-    pagination: PaginationQueryDto,
-    filters?: any,
+    filters: PropertyFilterDto,
   ): Promise<PaginatedResponse<Record<string, any>>> {
-    const { skip, take } = pagination;
+    const { skip, take } = filters;
 
     // Prepare the where clause with text search capabilities
     const where: any = {};
@@ -70,13 +69,13 @@ export class PropertyService {
       // Handle numeric ranges
       if (filters.minPrice || filters.maxPrice) {
         where.price = {};
-        if (filters.minPrice) where.price.gte = parseFloat(filters.minPrice);
-        if (filters.maxPrice) where.price.lte = parseFloat(filters.maxPrice);
+        if (filters.minPrice) where.price.gte = filters.minPrice;
+        if (filters.maxPrice) where.price.lte = filters.maxPrice;
       }
 
       // Handle exact matches for other fields that should remain exact
       if (filters.status) where.status = filters.status;
-      if (filters.propertyType) where.propertyType = filters.propertyType;
+      if (filters.type) where.propertyType = filters.type;
       if (filters.listingType) where.listingType = filters.listingType;
     }
     const [properties, total] = await Promise.all([

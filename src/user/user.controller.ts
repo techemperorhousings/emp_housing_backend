@@ -8,6 +8,7 @@ import {
   Patch,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -23,6 +24,7 @@ import {
 } from './dto/index.dto';
 import { FilterUsersDto } from './dto/FilterUsers.dto';
 import { Public } from '@decorators/index.decorator';
+import { AdminGuard } from '@guards/admin.guard';
 
 @ApiBearerAuth('JWT-auth')
 @Controller('users')
@@ -31,10 +33,10 @@ export class UserController {
 
   @Public()
   @Get()
+  @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all users with pagination and filters' })
   async findAll(@Query() query: FilterUsersDto) {
-    console.log(query)
     return this.service.findAll(query);
   }
 
