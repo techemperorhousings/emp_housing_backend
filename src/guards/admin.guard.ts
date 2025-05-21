@@ -19,7 +19,7 @@ export class AdminGuard implements CanActivate {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    if (user.role !== 'ADMIN') {
+    if (user.role.name !== 'ADMIN') {
       throw new ForbiddenException(
         'You do not have permission to access this route',
       );

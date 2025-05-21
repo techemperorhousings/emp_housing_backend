@@ -23,7 +23,6 @@ import {
   UpdateUserStatusDto,
 } from './dto/index.dto';
 import { FilterUsersDto } from './dto/FilterUsers.dto';
-import { Public } from '@decorators/index.decorator';
 import { AdminGuard } from '@guards/admin.guard';
 
 @ApiBearerAuth('JWT-auth')

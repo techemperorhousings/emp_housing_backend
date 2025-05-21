@@ -28,6 +28,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       where: {
         id: payload.sub,
       },
+      include: {
+        role: true,
+      },
     });
     if (!user) {
       throw new UnauthorizedException('', 'Your session has expired ☠');
