@@ -54,7 +54,6 @@ export async function seedUsersAndRelated(prisma: PrismaClient) {
           type: 'HOUSE', // Make sure this is a valid enum value
           status: 'PENDING', // Make sure this is a valid enum value
           ownerId: owner.id,
-          isActive: true,
 
           // Property Details
           bedrooms: faker.number.int({ min: 1, max: 6 }),

@@ -60,9 +60,10 @@ model User {
   roleId         String?
   Notifications  Notifications[]
 
-  sentChats     Chat[] @relation("SentChats")
-  receivedChats Chat[] @relation("receivedChats")
-  reports   Report[]
+  sentChats     Chat[]        @relation("SentChats")
+  receivedChats Chat[]        @relation("receivedChats")
+  reports       Report[]
+  bankAccounts  BankAccount[]
 }
 
 model KYC {
@@ -80,54 +81,50 @@ model KYC {
 }
 
 model Property {
-  id          String         @id @default(uuid())
-  name        String
-  description String
-  price       Decimal
-  minPrice    Decimal?        
-  address     String
-  type        PropertyType
-  status      PropertyStatus @default(PENDING)
-  listingType ListingType  @default(FOR_SALE)
-  ownerId     String
-  owner       User           @relation("PropertyOwner", fields: [ownerId], references: [id])
-  isActive    Boolean        @default(false)
-  features    String[]
-  images       String[]
-  propertyDocument String
-  deletionRequested Boolean  @default(false)
+  id                String         @id @default(uuid())
+  name              String
+  description       String
+  price             Decimal
+  minPrice          Decimal?
+  address           String
+  type              PropertyType
+  status            PropertyStatus @default(PENDING)
+  listingType       ListingType    @default(FOR_SALE)
+  ownerId           String
+  owner             User           @relation("PropertyOwner", fields: [ownerId], references: [id])
+  reason           String?
+  features          String[]
+  images            String[]
+  propertyDocument  String
+  deletionRequested Boolean        @default(false)
   deletionReason    String?
-  views            Int        @default(0)
-
- 
+  views             Int            @default(0)
 
   // Property details
-  bedrooms        Int
-  bathrooms       Int
-  toilets         Int
-  size            String // in square feet/meters
-  parkingSpace    Int
+  bedrooms     Int
+  bathrooms    Int
+  toilets      Int
+  size         String // in square feet/meters
+  parkingSpace Int
 
   // Relations
-  listings            Listing[]
-  purchases           Purchase[]
-  tours               PropertyTour[]
-  reviews             Review[]
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
-  PropertyBooking     PropertyBooking[]
-  favorites           Favorite[]
-  tickets             SupportTicket[]
-  reports   Report[]
+  listings        Listing[]
+  purchases       Purchase[]
+  tours           PropertyTour[]
+  reviews         Review[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  PropertyBooking PropertyBooking[]
+  favorites       Favorite[]
+  tickets         SupportTicket[]
+  reports         Report[]
 
-  
   @@index([ownerId])
   @@index([status])
   @@index([type])
   @@index([price])
   @@index([createdAt])
 }
-  
 
 model Listing {
   id          String        @id @default(uuid())
@@ -152,6 +149,21 @@ model Listing {
   @@index([propertyId])
   @@index([listedById])
   @@index([status])
+}
+
+model BankAccount {
+  id            String @id @default(uuid())
+  accountNumber String
+  bankName      String
+  accountName   String
+  userId        String
+  user          User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, bankName, accountNumber])
+  @@index([userId])
 }
 
 model PropertyBooking {
@@ -447,17 +459,16 @@ model Chat {
 }
 
 model Report {
-  id          String   @id @default(uuid())
-  reason      String
-  propertyId  String
-  property    Property @relation(fields: [propertyId], references: [id])
+  id           String       @id @default(uuid())
+  reason       String
+  propertyId   String
+  property     Property     @relation(fields: [propertyId], references: [id])
   reportedById String
-  reportedBy   User     @relation(fields: [reportedById], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  status      ReportStatus @default(PENDING)
+  reportedBy   User         @relation(fields: [reportedById], references: [id])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  status       ReportStatus @default(PENDING)
 }
-
 
 enum APP_STATUS {
   ACTIVE
@@ -552,11 +563,9 @@ enum UserRole {
 }
 
 enum PropertyStatus {
-  AVAILABLE
+  APPROVED
   PENDING
-  SOLD
-  LEASED
-  OFF_MARKET
+  REJECTED
 }
 
 enum PropertyType {
