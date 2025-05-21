@@ -16,7 +16,7 @@ export class CreateRentalAgreementDto {
   })
   @IsUUID()
   @IsNotEmpty()
-  listingId: string;
+  propertyId: string;
 
   @ApiProperty({
     description: 'ID of the property booking by user',
