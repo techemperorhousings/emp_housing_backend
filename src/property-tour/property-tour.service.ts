@@ -13,17 +13,10 @@ export class PropertyTourService {
 
   async createTour(dto: CreatePropertyTourDto): Promise<PropertyTour> {
     // Ensure the property and listing exist
-    const [property, listing] = await Promise.all([
-      this.prisma.property.findUnique({
-        where: { id: dto.propertyId },
-      }),
-      this.prisma.listing.findUnique({
-        where: { id: dto.listingId },
-      }),
-    ]);
+    const property = await this.prisma.property.findUnique({
+      where: { id: dto.propertyId },
+    });
     if (!property) throw new NotFoundException('Property not found');
-
-    if (!listing) throw new NotFoundException('Listing not found');
 
     const existingTour = await this.prisma.propertyTour.findFirst({
       where: {

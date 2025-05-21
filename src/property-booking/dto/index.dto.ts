@@ -9,11 +9,6 @@ export class CreatePropertyBookingDto {
   @IsString()
   propertyId: string;
 
-  @ApiProperty({ example: 'LISTING_ID_123', description: 'Listing ID' })
-  @IsNotEmpty()
-  @IsString()
-  listingId: string;
-
   @ApiProperty({ example: 'USER_ID_123', description: 'User ID (Tenant)' })
   @IsNotEmpty()
   @IsString()

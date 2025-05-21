@@ -82,7 +82,7 @@ export class RentalPaymentService {
       include: {
         rentalAgreement: {
           include: {
-            listing: true, // Include listing details if needed
+            property: true, // Include listing details if needed
             landlord: { select: { id: true, firstname: true, lastname: true } },
             tenant: { select: { id: true, firstname: true, lastname: true } },
           },
@@ -95,9 +95,7 @@ export class RentalPaymentService {
     return await this.prisma.rentalPayment.findMany({
       where: {
         rentalAgreement: {
-          listing: {
-            propertyId: propertyId,
-          },
+          propertyId,
         },
       },
       include: this.includeObj,

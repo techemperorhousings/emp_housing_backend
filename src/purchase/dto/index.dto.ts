@@ -17,7 +17,7 @@ export class CreatePurchaseDto {
   })
   @IsUUID()
   @IsNotEmpty()
-  listingId: string;
+  propertyId: string;
 
   @ApiProperty({
     description: 'The ID of the buyer making the purchase',

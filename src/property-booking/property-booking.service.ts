@@ -18,10 +18,9 @@ export class PropertyBookingService {
     const checkInDate = new Date(dto.checkInDate);
     const checkoutDate = new Date(dto.checkoutDate);
     const today = new Date();
-    // Ensure listing exists and is available for booking
-    const listing = await this.prisma.listing.findUnique({
-      where: { id: dto.listingId },
-      include: { property: true },
+    // Ensure property exists and is available for booking
+    const listing = await this.prisma.property.findUnique({
+      where: { id: dto.propertyId },
     });
 
     if (!listing || listing.listingType !== 'FOR_RENT') {
@@ -49,7 +48,7 @@ export class PropertyBookingService {
     const existingBooking = await this.prisma.propertyBooking.findFirst({
       where: {
         userId: dto.userId,
-        propertyId: listing.propertyId,
+        propertyId: listing.id,
         OR: [
           {
             checkInDate: { lte: checkoutDate }, // Check-in is before or on the requested check-out date
@@ -71,7 +70,7 @@ export class PropertyBookingService {
         ...dto,
         checkInDate,
         checkoutDate,
-        propertyId: listing.propertyId,
+        propertyId: listing.id,
       },
     });
   }
@@ -141,7 +140,7 @@ export class PropertyBookingService {
   async getBookingsByUser(userId: string) {
     return await this.prisma.propertyBooking.findMany({
       where: { userId },
-      include: { property: true, listing: true },
+      include: { property: true },
     });
   }
 

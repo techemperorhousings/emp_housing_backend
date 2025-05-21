@@ -52,7 +52,7 @@ export class RentalAgreementService {
   }
 
   async createRental(dto: CreateRentalAgreementDto): Promise<RentalAgreement> {
-    const { listingId, tenantId, bookingId, ...data } = dto;
+    const { propertyId, tenantId, bookingId, ...data } = dto;
 
     // Validate rental dates
     const { startDate, endDate } = this.validateRentalDates(
@@ -60,9 +60,8 @@ export class RentalAgreementService {
       dto.endDate,
     );
 
-    const listing = await this.prisma.listing.findUnique({
-      where: { id: listingId },
-      include: { property: true },
+    const listing = await this.prisma.property.findUnique({
+      where: { id: propertyId },
     });
 
     if (!listing || listing.listingType !== 'FOR_RENT') {
@@ -80,14 +79,14 @@ export class RentalAgreementService {
 
     return await this.prisma.rentalAgreement.create({
       data: {
-        listing: {
-          connect: { id: listingId }, // Connect to the listing
+        property: {
+          connect: { id: propertyId }, // Connect to the property
         },
         tenant: {
           connect: { id: tenantId }, // Connect to the tenant
         },
         landlord: {
-          connect: { id: listing.listedById }, // Connect to the tenant
+          connect: { id: listing.ownerId }, // Connect to the landlord
         },
         booking: {
           connect: { id: bookingId }, // Connect to the booking
@@ -125,9 +124,7 @@ export class RentalAgreementService {
   ): Promise<RentalAgreement[]> {
     return await this.prisma.rentalAgreement.findMany({
       where: {
-        listing: {
-          propertyId: propertyId,
-        },
+        propertyId,
       },
       include: this.includeObj,
     });

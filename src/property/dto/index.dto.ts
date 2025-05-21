@@ -149,7 +149,7 @@ export class PropertyFilterDto extends PaginationQueryDto {
   maxPrice?: number;
 
   @ApiPropertyOptional({
-    example: PropertyStatus.SOLD,
+    example: PropertyStatus.PENDING,
     enum: PropertyStatus,
     description: 'Filter by property status',
   })

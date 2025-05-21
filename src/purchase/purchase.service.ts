@@ -1,30 +1,21 @@
 import { PaginatedResponse } from '@utils/pagination';
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@prisma/prisma.service';
 import { CreatePurchaseDto, FilterDto } from './dto/index.dto';
-import { PropertyStatus, Purchase, PurchaseStatus } from '@prisma/client';
+import { Purchase, PurchaseStatus } from '@prisma/client';
 
 @Injectable()
 export class PurchaseService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreatePurchaseDto): Promise<Purchase> {
-    const { listingId, buyerId, sellerId, purchaseDate } = dto;
+    const { propertyId, buyerId, sellerId, purchaseDate } = dto;
 
-    const listing = await this.prisma.listing.findUnique({
-      where: { id: listingId },
-      include: { property: true },
+    const listing = await this.prisma.property.findUnique({
+      where: { id: propertyId },
     });
     if (!listing) {
       throw new NotFoundException('Property not found');
-    }
-
-    if (listing.listedById !== sellerId) {
-      throw new BadRequestException('Seller does not own this property');
     }
 
     if (!listing || listing.listingType !== 'FOR_SALE') {
@@ -35,14 +26,12 @@ export class PurchaseService {
       data: {
         ...dto,
         purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
-        listingId,
-        propertyId: listing.propertyId,
+        propertyId,
         buyerId,
         sellerId,
       },
       include: {
         property: true,
-        listing: true,
         buyer: {
           select: {
             firstname: true,
@@ -166,12 +155,12 @@ export class PurchaseService {
     }
 
     // Update the property owner if purchase is completed
-    if (status === PurchaseStatus.COMPLETED) {
-      await this.prisma.property.update({
-        where: { id: purchase.propertyId },
-        data: { ownerId: purchase.buyerId, status: PropertyStatus.SOLD },
-      });
-    }
+    // if (status === PurchaseStatus.COMPLETED) {
+    //   await this.prisma.property.update({
+    //     where: { id: purchase.propertyId },
+    //     data: { ownerId: purchase.buyerId, status: PropertyStatus.SOLD },
+    //   });
+    // }
 
     return await this.prisma.purchase.update({
       where: { id },

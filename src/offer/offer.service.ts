@@ -18,8 +18,8 @@ export class OfferService {
       this.prisma.user.findUnique({
         where: { id: dto.buyerId },
       }),
-      this.prisma.listing.findUnique({
-        where: { id: dto.listingId },
+      this.prisma.property.findUnique({
+        where: { id: dto.propertyId },
       }),
     ]);
 
@@ -56,7 +56,7 @@ export class OfferService {
   async getOfferById(id: string): Promise<Offer> {
     const offer = await this.prisma.offer.findUnique({
       where: { id },
-      include: { buyer: true, listing: true },
+      include: { buyer: true, property: true },
     });
 
     if (!offer) throw new NotFoundException('Offer not found');
@@ -64,9 +64,9 @@ export class OfferService {
     return offer;
   }
 
-  async getOffersByListing(listingId: string): Promise<Offer[]> {
+  async getOffersByListing(propertyId: string): Promise<Offer[]> {
     return await this.prisma.offer.findMany({
-      where: { listingId },
+      where: { propertyId },
       include: { buyer: true },
     });
   }
@@ -74,7 +74,7 @@ export class OfferService {
   async getuserOffers(buyerId: string): Promise<Offer[]> {
     return await this.prisma.offer.findMany({
       where: { buyerId },
-      include: { listing: true },
+      include: { property: true },
     });
   }
 

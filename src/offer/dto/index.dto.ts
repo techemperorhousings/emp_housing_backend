@@ -41,7 +41,7 @@ export class CreateOfferDto {
   })
   @IsNotEmpty()
   @IsUUID()
-  listingId: string;
+  propertyId: string;
 }
 
 export class UpdateOfferStatusDto {
