@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -18,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { KycService } from './kyc.service';
 import { CreateKycDto, GetKycQueryDto, RejectKycDto } from './dto/index.dto';
+import { AdminGuard } from '@guards/admin.guard';
 
 @ApiTags('KYC')
 @ApiBearerAuth('JWT-auth')
@@ -52,6 +54,7 @@ export class KycController {
 
   /***************Admin Routes ************/
   @Get()
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Get all KYC submissions with pagination' })
   async getAllKyc(@Query() query: GetKycQueryDto) {
     const kycs = await this.kycService.getAllKyc(query);
@@ -62,6 +65,7 @@ export class KycController {
   }
 
   @Get('/user/:userId')
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Get specific KYC submission by user ID' })
   @ApiResponse({
     status: 200,
@@ -76,6 +80,7 @@ export class KycController {
   }
 
   @Patch(':id/approve')
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Approve KYC submission' })
   @ApiResponse({
     status: 200,
@@ -90,6 +95,7 @@ export class KycController {
   }
 
   @Patch(':id/reject')
+  @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Reject KYC submission with reason' })
   @ApiResponse({
     status: 200,
