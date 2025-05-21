@@ -1,7 +1,6 @@
 import { AuthenticationModule } from '@authentication/authentication.module';
 import { FavoriteModule } from '@favorite/favorite.module';
 import { KycModule } from '@kyc/kyc.module';
-import { ListingModule } from '@listing/listing.module';
 import { MailModule } from '@mail/mail.module';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -35,7 +34,6 @@ export const modules = [
   UserModule,
   KycModule,
   PropertyModule,
-  ListingModule,
   PropertyBookingModule,
   PurchaseModule,
   RentalPaymentModule,
