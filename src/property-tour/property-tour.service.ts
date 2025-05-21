@@ -12,7 +12,7 @@ export class PropertyTourService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createTour(dto: CreatePropertyTourDto): Promise<PropertyTour> {
-    // Ensure the property and listing exist
+    // Ensure the property  exist
     const property = await this.prisma.property.findUnique({
       where: { id: dto.propertyId },
     });

@@ -52,14 +52,6 @@ export class CreateSupportTicketDto {
   @IsOptional()
   @IsString()
   propertyId?: string;
-
-  @ApiPropertyOptional({
-    example: 'listing_67890',
-    description: 'Optional listing ID related to the ticket',
-  })
-  @IsOptional()
-  @IsString()
-  listingId?: string;
 }
 
 export class UpdateSupportTicketStatusDto {

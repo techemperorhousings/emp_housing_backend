@@ -83,14 +83,6 @@ export class BookingFilterDto extends PaginationQueryDto {
   @IsOptional()
   @IsString()
   userId?: string;
-
-  @ApiPropertyOptional({
-    description: 'Filter by listing ID',
-    example: 'l5678901-stuv-234w-xy56-789012zabcd',
-  })
-  @IsOptional()
-  @IsString()
-  listingId?: string;
 }
 
 export class UpdateBookingStatusDto {

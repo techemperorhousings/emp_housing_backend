@@ -36,8 +36,8 @@ export class CreateOfferDto {
   buyerId: string;
 
   @ApiProperty({
-    example: 'LISTING_ID_123',
-    description: 'ID of the listing the offer is made on',
+    example: 'PROPERTY_ID_123',
+    description: 'ID of the property the offer is made on',
   })
   @IsNotEmpty()
   @IsUUID()

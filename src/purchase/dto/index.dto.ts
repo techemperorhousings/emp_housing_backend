@@ -12,7 +12,7 @@ import { PaginationQueryDto } from '@utils/pagination';
 
 export class CreatePurchaseDto {
   @ApiProperty({
-    description: 'The ID of the listing being purchased',
+    description: 'The ID of the property being purchased',
     example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsUUID()
@@ -36,7 +36,7 @@ export class CreatePurchaseDto {
   transactionId: string;
 
   @ApiProperty({
-    description: 'The ID of the seller who owns the listing',
+    description: 'The ID of the seller who owns the property',
     example: '222e4567-e89b-12d3-a456-426614174002',
   })
   @IsUUID()

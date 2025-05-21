@@ -26,7 +26,7 @@ export class OfferController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Make an offer on a  property listing' })
+  @ApiOperation({ summary: 'Make an offer on a  property' })
   async createOffer(@Body() dto: CreateOfferDto) {
     const offer = await this.service.createOffer(dto);
     return {
@@ -68,11 +68,11 @@ export class OfferController {
     };
   }
 
-  @Get('listing/:listingId')
+  @Get('property/:propertyId')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all offers for a specific listing' })
-  async getOffersByListing(@Param('listingId') listingId: string) {
-    const offers = await this.service.getOffersByListing(listingId);
+  @ApiOperation({ summary: 'Get all offers for a specific property' })
+  async getOffersOnProperty(@Param('propertyId') propertyId: string) {
+    const offers = await this.service.getOffersByListing(propertyId);
     return {
       message: 'Offers fetched successfully',
       data: offers,

@@ -60,11 +60,11 @@ export class RentalAgreementService {
       dto.endDate,
     );
 
-    const listing = await this.prisma.property.findUnique({
+    const property = await this.prisma.property.findUnique({
       where: { id: propertyId },
     });
 
-    if (!listing || listing.listingType !== 'FOR_RENT') {
+    if (!property || property.listingType !== 'FOR_RENT') {
       throw new NotFoundException('Listing not available for rent.');
     }
 
@@ -86,7 +86,7 @@ export class RentalAgreementService {
           connect: { id: tenantId }, // Connect to the tenant
         },
         landlord: {
-          connect: { id: listing.ownerId }, // Connect to the landlord
+          connect: { id: property.ownerId }, // Connect to the landlord
         },
         booking: {
           connect: { id: bookingId }, // Connect to the booking
@@ -180,15 +180,11 @@ export class RentalAgreementService {
   }
 
   includeObj = {
-    listing: {
-      include: {
-        property: {
-          select: {
-            id: true,
-            title: true,
-            address: true,
-          },
-        },
+    property: {
+      select: {
+        id: true,
+        title: true,
+        address: true,
       },
     },
     tenant: {

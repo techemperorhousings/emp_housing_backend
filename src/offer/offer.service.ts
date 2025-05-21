@@ -13,8 +13,8 @@ export class OfferService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createOffer(dto: CreateOfferDto): Promise<Offer> {
-    // Ensure buyer and listing exists
-    const [buyer, listing] = await Promise.all([
+    // Ensure buyer exists
+    const [buyer, property] = await Promise.all([
       this.prisma.user.findUnique({
         where: { id: dto.buyerId },
       }),
@@ -25,7 +25,7 @@ export class OfferService {
 
     if (!buyer) throw new NotFoundException('Buyer not found');
 
-    if (!listing) throw new NotFoundException('Listing not found');
+    if (!property) throw new NotFoundException('Property not found');
 
     return await this.prisma.offer.create({
       data: dto,

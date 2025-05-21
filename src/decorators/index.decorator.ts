@@ -7,5 +7,4 @@ export const ROLES_KEY = 'roles';
 export const Roles = (...roles: string[]) => SetMetadata(ROLES_KEY, roles);
 
 export const IS_OWNER = 'owner';
-export const OwnerResource = (resource: string) =>
-  SetMetadata(IS_OWNER, resource);
+export const OwnerResource = () => SetMetadata(IS_OWNER, true);

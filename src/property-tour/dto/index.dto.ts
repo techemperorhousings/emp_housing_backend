@@ -19,14 +19,6 @@ export class CreatePropertyTourDto {
   propertyId: string;
 
   @ApiProperty({
-    example: 'LISTING_ID_123',
-    description: 'Listing ID related to the tour',
-  })
-  @IsNotEmpty()
-  @IsUUID()
-  listingId: string;
-
-  @ApiProperty({
     example: 'USER_ID_123',
     description: 'User who requested the tour',
   })

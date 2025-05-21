@@ -82,7 +82,7 @@ export class RentalPaymentService {
       include: {
         rentalAgreement: {
           include: {
-            property: true, // Include listing details if needed
+            property: true, // Include property details if needed
             landlord: { select: { id: true, firstname: true, lastname: true } },
             tenant: { select: { id: true, firstname: true, lastname: true } },
           },
@@ -109,11 +109,7 @@ export class RentalPaymentService {
         landlord: {
           select: { id: true, firstname: true, lastname: true },
         },
-        listing: {
-          select: {
-            property: { select: { name: true } },
-          },
-        },
+        property: { select: { name: true } },
       },
     },
   };

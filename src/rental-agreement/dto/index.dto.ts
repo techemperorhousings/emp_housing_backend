@@ -11,7 +11,7 @@ import {
 
 export class CreateRentalAgreementDto {
   @ApiProperty({
-    description: 'ID of the listing being rented',
+    description: 'ID of the property being rented',
     example: '9ba12401-b309-4405-abf4-0c00141f8f26',
   })
   @IsUUID()
