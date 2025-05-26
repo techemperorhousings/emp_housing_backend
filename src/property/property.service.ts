@@ -63,7 +63,7 @@ export class PropertyService {
 
     if (filters) {
       if (filters.location) {
-        where.location = { contains: filters.location, mode: 'insensitive' };
+        where.address = { contains: filters.location, mode: 'insensitive' };
       }
 
       // Handle numeric ranges
@@ -75,7 +75,7 @@ export class PropertyService {
 
       // Handle exact matches for other fields that should remain exact
       if (filters.status) where.status = filters.status;
-      if (filters.type) where.propertyType = filters.type;
+      if (filters.type) where.type = filters.type;
       if (filters.listingType) where.listingType = filters.listingType;
     }
     const [properties, total] = await Promise.all([
