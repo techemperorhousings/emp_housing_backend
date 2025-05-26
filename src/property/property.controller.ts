@@ -92,7 +92,7 @@ export class PropertyController {
     };
   }
 
-  @Get('request-deletion')
+  @Get('deletion-requests')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AdminGuard)
   @ApiOperation({
