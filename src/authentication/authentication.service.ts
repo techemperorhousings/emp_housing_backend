@@ -118,6 +118,13 @@ export class AuthenticationService {
             mode: 'insensitive', // Makes the query case-insensitive
           },
         },
+        include: {
+          role: {
+            select: {
+              name: true,
+            },
+          },
+        },
       });
 
       // 2. if user does not exist throw exception
