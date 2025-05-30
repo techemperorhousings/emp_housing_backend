@@ -181,12 +181,12 @@ export class UserService {
 
   async getOverviewUser(userId: string): Promise<{
     totalApprovedListings: number;
-    totalSoldProperties: number;
+    totalPendingProperties: number;
     totalDraftListings: number;
     averageViewsPerListing: number;
     portfolioValue: number;
   }> {
-    const [approved, sold, draft, allProperties] = await Promise.all([
+    const [approved, pending, draft, allProperties] = await Promise.all([
       this.prisma.property.count({
         where: { ownerId: userId, status: 'APPROVED' },
       }),
@@ -215,7 +215,7 @@ export class UserService {
 
     return {
       totalApprovedListings: approved,
-      totalSoldProperties: sold,
+      totalPendingProperties: pending,
       totalDraftListings: draft,
       averageViewsPerListing: averageViews,
       portfolioValue,
