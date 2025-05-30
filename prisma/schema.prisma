@@ -87,6 +87,7 @@ model Property {
   minPrice          Decimal?
   address           String
   type              PropertyType
+  listingStatus     ListingStatus @default(ACTIVE)
   status            PropertyStatus @default(PENDING)
   listingType       ListingType    @default(FOR_SALE)
   ownerId           String
