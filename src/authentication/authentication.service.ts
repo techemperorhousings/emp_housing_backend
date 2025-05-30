@@ -119,11 +119,7 @@ export class AuthenticationService {
           },
         },
         include: {
-          role: {
-            select: {
-              name: true,
-            },
-          },
+          role: true,
         },
       });
 
