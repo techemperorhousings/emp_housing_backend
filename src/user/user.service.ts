@@ -146,6 +146,150 @@ export class UserService {
     return { message: 'Profile picture updated successfully', data: safeUser };
   }
 
+  /******** dashboard services ***************/
+
+  async getDashboardOverview(userId: string): Promise<any> {
+    const isAdmin = await this.isAdmin(userId);
+
+    if (isAdmin) {
+      const [platformGrowth, propertyInventory] = await Promise.all([
+        this.getPlatformGrowth(),
+        this.getPropertyInventory(),
+      ]);
+
+      return {
+        role: 'ADMIN',
+        platformGrowth,
+        propertyInventory,
+      };
+    } else {
+      const userOverview = await this.getOverviewUser(userId);
+      return {
+        role: 'USER',
+        ...userOverview,
+      };
+    }
+  }
+
+  private async isAdmin(userId: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: { select: { name: true } } },
+    });
+    return user?.role?.name === 'ADMIN';
+  }
+
+  async getOverviewUser(userId: string): Promise<{
+    totalActiveListings: number;
+    totalSoldProperties: number;
+    totalDraftListings: number;
+    averageViewsPerListing: number;
+    portfolioValue: number;
+  }> {
+    const [active, sold, draft, allProperties] = await Promise.all([
+      this.prisma.property.count({
+        where: { ownerId: userId, status: 'APPROVED' },
+      }),
+      this.prisma.property.count({
+        where: { ownerId: userId, status: 'PENDING' },
+      }),
+      this.prisma.property.count({
+        where: { ownerId: userId, status: 'REJECTED' },
+      }),
+      this.prisma.property.findMany({
+        where: { ownerId: userId },
+        select: { price: true, views: true },
+      }),
+    ]);
+
+    const totalProperties = allProperties.length;
+
+    const totalViews = allProperties.reduce((acc, p) => acc + p.views, 0);
+
+    const averageViews = totalProperties ? totalViews / totalProperties : 0;
+
+    const portfolioValue = allProperties.reduce(
+      (acc, p) => acc + Number(p.price),
+      0,
+    );
+
+    return {
+      totalActiveListings: active,
+      totalSoldProperties: sold,
+      totalDraftListings: draft,
+      averageViewsPerListing: averageViews,
+      portfolioValue,
+    };
+  }
+
+  async getPlatformGrowth(): Promise<{
+    totalUsers: number;
+    newRegistrationsThisMonth: number;
+    userGrowthRate: number;
+  }> {
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(startOfThisMonth.getTime() - 1);
+
+    const [totalUsers, newThisMonth, lastMonth] = await Promise.all([
+      this.prisma.user.count(),
+      this.prisma.user.count({
+        where: { createdAt: { gte: startOfThisMonth } },
+      }),
+      this.prisma.user.count({
+        where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } },
+      }),
+    ]);
+
+    const userGrowthRate =
+      lastMonth === 0 ? 100 : ((newThisMonth - lastMonth) / lastMonth) * 100;
+
+    return {
+      totalUsers,
+      newRegistrationsThisMonth: newThisMonth,
+      userGrowthRate,
+    };
+  }
+
+  async getPropertyInventory(): Promise<{
+    totalApprovedListings: number;
+    newListingsToday: number;
+    newListingsThisWeek: number;
+    inventoryTurnover: number;
+  }> {
+    const now = new Date();
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(startOfWeek.getDate() - now.getDay()); // Sunday
+
+    const [active, today, thisWeek, sold] = await Promise.all([
+      this.prisma.property.count({ where: { status: 'APPROVED' } }),
+      this.prisma.property.count({
+        where: { createdAt: { gte: startOfToday } },
+      }),
+      this.prisma.property.count({
+        where: { createdAt: { gte: startOfWeek } },
+      }),
+      this.prisma.property.count({ where: { listingStatus: 'SOLD' } }),
+    ]);
+
+    const totalListings = await this.prisma.property.count();
+    const inventoryTurnover =
+      totalListings === 0 ? 0 : (sold / totalListings) * 100;
+
+    return {
+      totalApprovedListings: active,
+      newListingsToday: today,
+      newListingsThisWeek: thisWeek,
+      inventoryTurnover,
+    };
+  }
+
   includeObj = {
     role: {
       select: {

@@ -38,6 +38,12 @@ export class UserController {
     return this.service.findAll(query);
   }
 
+  @Get('/dashboard/overview')
+  async getDashboardOverview(@Req() req) {
+    const userId = req.user.id;
+    return this.service.getDashboardOverview(userId);
+  }
+
   @ApiOperation({ summary: 'Get user Profile' })
   @HttpCode(HttpStatus.OK)
   @ApiResponse({
