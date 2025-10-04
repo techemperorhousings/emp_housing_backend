@@ -87,12 +87,12 @@ model Property {
   minPrice          Decimal?
   address           String
   type              PropertyType
-  listingStatus     ListingStatus @default(ACTIVE)
+  listingStatus     ListingStatus  @default(ACTIVE)
   status            PropertyStatus @default(PENDING)
   listingType       ListingType    @default(FOR_SALE)
   ownerId           String
   owner             User           @relation("PropertyOwner", fields: [ownerId], references: [id])
-  reason           String?
+  reason            String?
   features          String[]
   images            String[]
   propertyDocument  String
@@ -117,8 +117,8 @@ model Property {
   favorites       Favorite[]
   tickets         SupportTicket[]
   reports         Report[]
-  rentals   RentalAgreement[]
-  offers    Offer[]
+  rentals         RentalAgreement[]
+  offers          Offer[]
 
   @@index([ownerId])
   @@index([status])
@@ -227,8 +227,8 @@ model Purchase {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
-  buyerId   String
-  buyer     User    @relation(name: "Buyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  buyerId String
+  buyer   User   @relation(name: "Buyer", fields: [buyerId], references: [id], onDelete: Restrict)
 
   sellerId   String
   seller     User      @relation(name: "Seller", fields: [sellerId], references: [id], onDelete: Restrict)
@@ -428,22 +428,21 @@ model Report {
   status       ReportStatus @default(PENDING)
 }
 
-
 model ContactInquiry {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  subject   String?
-  message   String   @db.Text
-  
+  id      String  @id @default(cuid())
+  name    String
+  email   String
+  subject String?
+  note    String  @db.Text
+
   // Status tracking
-  status    InquiryStatus @default(NEW)
-  
+  status InquiryStatus @default(NEW)
+
   // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   respondedAt DateTime?
-  
+
   @@index([status])
   @@index([createdAt])
 }

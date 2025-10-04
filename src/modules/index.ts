@@ -19,6 +19,7 @@ import { UserModule } from '@user/user.module';
 import { RoleModule } from '@role/role.module';
 import { FileUploadModule } from '@file-upload/file-upload.module';
 import { BankAccountModule } from '@bank-account/bank-account.module';
+import { ContactModule } from '@contact/contact.module';
 
 export const modules = [
   ConfigModule.forRoot({
@@ -46,4 +47,5 @@ export const modules = [
   RoleModule,
   FileUploadModule,
   BankAccountModule,
+  ContactModule,
 ];
