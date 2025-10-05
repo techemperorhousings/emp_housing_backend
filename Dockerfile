@@ -13,13 +13,16 @@ WORKDIR /app
 # Set production environment
 ENV NODE_ENV=production
 
+#  Prisma requires OpenSSL
+RUN apt-get update -y && apt-get install -y openssl
+
 
 # Throw-away build stage to reduce size of final image
 FROM base as build
 
-# Install packages needed to build node modules
+# Install build tools
 RUN apt-get update -qq && \
-    apt-get install -y python-is-python3 pkg-config build-essential 
+    apt-get install -y python-is-python3 pkg-config build-essential openssl
 
 # Install node modules
 COPY --link package-lock.json package.json ./
