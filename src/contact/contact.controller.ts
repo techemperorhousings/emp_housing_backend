@@ -33,14 +33,12 @@ export class ContactController {
   }
 
   @Get()
-  @Public()
   @ApiOperation({ summary: 'List all inquiries with filters and pagination' })
   findAll(@Query() query: QueryContactInquiryDto) {
     return this.contactService.findAll(query);
   }
 
   @Patch(':id/status')
-  @Public()
   @ApiOperation({ summary: 'Update inquiry status' })
   @ApiResponse({ status: 200, description: 'Status updated successfully.' })
   updateStatus(@Param('id') id: string, @Query() dto: UpdateContactInquiryDto) {
@@ -48,7 +46,6 @@ export class ContactController {
   }
 
   @Delete(':id')
-  @Public()
   @ApiOperation({ summary: 'Delete an inquiry' })
   @ApiResponse({ status: 200, description: 'Inquiry deleted successfully.' })
   remove(@Param('id') id: string) {
@@ -56,7 +53,6 @@ export class ContactController {
   }
 
   @Get('stats/summary')
-  @Public()
   @ApiOperation({
     summary: 'Get inquiry statistics (counts by type and status)',
   })
@@ -65,7 +61,6 @@ export class ContactController {
   }
 
   @Get('recent')
-  @Public()
   @ApiOperation({ summary: 'Get recent inquiries from the last 7 days' })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   getRecent(@Query('limit') limit?: number) {
@@ -73,7 +68,6 @@ export class ContactController {
   }
 
   @Get(':id')
-  @Public()
   @ApiOperation({ summary: 'Get a single inquiry by ID' })
   @ApiResponse({ status: 404, description: 'Inquiry not found.' })
   findOne(@Param('id') id: string) {
