@@ -1,8 +1,17 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Chat } from '@prisma/client';
 import { ChatService } from './chat.service';
 import { SendMessageDto } from './dto';
+import { AdminGuard } from '@guards/admin.guard';
 
 @ApiTags('In-App-Chat')
 @ApiBearerAuth('JWT-auth')
@@ -58,5 +67,12 @@ export class ChatController {
       receiverId,
     );
     return resp;
+  }
+
+  @Get('/')
+  @UseGuards(AdminGuard)
+  @ApiOperation({ summary: 'Get all chats' })
+  async getAllChats(): Promise<Chat[]> {
+    return this.chatService.getAllChats();
   }
 }

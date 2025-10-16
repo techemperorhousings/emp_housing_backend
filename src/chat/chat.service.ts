@@ -134,4 +134,8 @@ export class ChatService {
       },
     });
   }
+
+  async getAllChats(): Promise<Chat[]> {
+    return this.prisma.chat.findMany();
+  }
 }
