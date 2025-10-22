@@ -6,10 +6,6 @@ export class SendMessageDto {
   @IsNotEmpty()
   senderId: string;
 
-  @ApiProperty({ example: '6b9711fc-e87f-469c-802b-3786108ffe6e' })
-  @IsNotEmpty()
-  receiverId: string;
-
   @ApiProperty({ example: 'Holla como esta' })
   @IsNotEmpty()
   message: string;

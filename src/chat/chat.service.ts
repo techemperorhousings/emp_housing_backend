@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Chat } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { SendMessageDto } from './dto';
@@ -12,17 +12,36 @@ export class ChatService {
   ) {}
 
   async sendMessage(data: SendMessageDto): Promise<Chat> {
-    const { senderId, receiverId, message } = data;
+    const { senderId, message } = data;
+
+    // Step 1: Fetch the admin role
+    const adminRole = await this.prisma.role.findUnique({
+      where: { name: 'ADMIN' },
+    });
+
+    if (!adminRole) {
+      throw new NotFoundException('Admin role not found');
+    }
+
+    // Step 2: Fetch an admin user
+    const admin = await this.prisma.user.findFirst({
+      where: { roleId: adminRole.id },
+    });
+
+    if (!admin) {
+      throw new NotFoundException('No admin user found');
+    }
+
     const msg = await this.prisma.chat.create({
       data: {
         senderId,
-        receiverId,
+        receiverId: admin.id,
         message,
       },
     });
 
     await this.pusherService.trigger(
-      `chat-${receiverId}`,
+      `chat-${admin.id}`,
       'new-message',
       message,
     );
