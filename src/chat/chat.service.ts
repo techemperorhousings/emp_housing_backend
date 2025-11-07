@@ -98,7 +98,7 @@ export class ChatService {
       return [msg, conv];
     });
 
-    // Emit Pusher events (outside transaction)
+    // Emit Pusher events
     await Promise.all([
       this.pusherService.trigger(`chat-${receiverId}`, 'new-message', {
         message: msg,
