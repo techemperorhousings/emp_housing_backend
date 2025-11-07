@@ -52,6 +52,7 @@ export class ChatService {
   async getUserChats(currentUserId: string): Promise<any> {
     const sentTo = await this.prisma.chat.findMany({
       where: { senderId: currentUserId },
+      orderBy: { createdAt: 'desc' },
       select: {
         receiver: {
           select: {
@@ -100,6 +101,7 @@ export class ChatService {
 
     return uniqueUsers;
   }
+
   async getMesagesSenderReceiver(
     senderId: string,
     receiverId: string,
