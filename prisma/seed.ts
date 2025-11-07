@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import Operations from './operations';
-const ops = new Operations();
+import { seedUsersAndRelated } from './db-seed';
 
+const ops = new Operations();
 const prisma = new PrismaClient();
 
 const APP_ROLES: Array<string> = [
@@ -38,16 +39,15 @@ const PERMISSIONS: Array<{ name: string; access: ACCESS_LEVEL }> = [
   { name: 'BOOK_PROPERTY', access: 'BUYER' },
 ];
 
-async function main() {
-  //Create roles
+// Function to create roles and permissions
+async function createRolesAndPermissions() {
+  // Create roles
   const rolePromises = APP_ROLES.map(async (role) => {
     return await ops.createRole(role);
   });
-
-  // Create permissions and link to roles
   const createdRoles = await Promise.all(rolePromises);
 
-  // Create permissions and link to roles
+  // Create permissions
   const permissionPromises = PERMISSIONS.map(async (permission) => {
     return await ops.findOrCreatePermission(
       permission.name,
@@ -55,7 +55,6 @@ async function main() {
       permission.access,
     );
   });
-
   const createdPermissions = await Promise.all(permissionPromises);
 
   // Link permissions to roles
@@ -67,6 +66,15 @@ async function main() {
     }
   }
 
+  console.log('Roles and permissions created successfully.');
+}
+
+// Main function to handle the complete seeding process
+async function main() {
+  //await createRolesAndPermissions();
+
+  await seedUsersAndRelated(prisma);
+
   console.log('Seeding completed successfully.');
 }
 
@@ -75,7 +83,7 @@ main()
     console.log('Database seeded successfully.');
   })
   .catch((e) => {
-    console.error(e);
+    console.error('Seeding failed:', e);
   })
   .finally(async () => {
     await prisma.$disconnect();
