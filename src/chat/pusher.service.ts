@@ -1,6 +1,6 @@
 // pusher.service.ts
 import { Injectable } from '@nestjs/common';
-import * as Pusher from 'pusher';
+import Pusher from 'pusher';
 
 @Injectable()
 export class PusherService {

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Chat } from '@prisma/client';
 import { PrismaService } from '@prisma/prisma.service';
 import { SendMessageDto } from './dto';
@@ -14,7 +18,7 @@ export class ChatService {
   async sendMessage(data: SendMessageDto): Promise<Chat> {
     const { senderId, message } = data;
 
-    // Step 1: Fetch the admin role
+    // Fetch the admin role
     const adminRole = await this.prisma.role.findUnique({
       where: { name: 'ADMIN' },
     });
@@ -23,7 +27,7 @@ export class ChatService {
       throw new NotFoundException('Admin role not found');
     }
 
-    // Step 2: Fetch an admin user
+    //Fetch an admin user
     const admin = await this.prisma.user.findFirst({
       where: { roleId: adminRole.id },
     });
@@ -32,16 +36,41 @@ export class ChatService {
       throw new NotFoundException('No admin user found');
     }
 
+    // Check if the sender is an admin
+    const sender = await this.prisma.user.findUnique({
+      where: { id: senderId },
+      include: { role: true },
+    });
+
+    if (!sender) {
+      throw new NotFoundException('Sender not found');
+    }
+
+    let receiverId: string;
+
+    if (sender.role.name === 'ADMIN') {
+      // For admin, use the provided receiverId
+      if (!data.receiverId) {
+        throw new BadRequestException(
+          'Receiver ID is required when admin sends a message',
+        );
+      }
+      receiverId = data.receiverId;
+    } else {
+      // For regular users, send to admin
+      receiverId = admin.id;
+    }
+
     const msg = await this.prisma.chat.create({
       data: {
         senderId,
-        receiverId: admin.id,
+        receiverId,
         message,
       },
     });
 
     await this.pusherService.trigger(
-      `chat-${admin.id}`,
+      `chat-${receiverId}`,
       'new-message',
       message,
     );
