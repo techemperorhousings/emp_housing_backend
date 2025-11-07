@@ -61,29 +61,93 @@ export class ChatService {
       receiverId = admin.id;
     }
 
-    const msg = await this.prisma.chat.create({
-      data: {
-        senderId,
-        receiverId,
-        message,
-      },
+    //Determine unique pair for conversation
+    const [userAId, userBId] = [senderId, receiverId].sort();
+
+    // Wrap message + conversation in a transaction
+    const [msg, conv] = await this.prisma.$transaction(async (tx) => {
+      // create the message
+      const msg = await tx.chat.create({
+        data: {
+          senderId,
+          receiverId,
+          message,
+        },
+      });
+
+      // upsert the conversation
+      const conv = await tx.conversation.upsert({
+        where: {
+          userAId_userBId: {
+            userAId,
+            userBId,
+          },
+        },
+        create: {
+          userAId,
+          userBId,
+          lastMessage: message,
+          lastMessageAt: msg.createdAt,
+        },
+        update: {
+          lastMessage: message,
+          lastMessageAt: msg.createdAt,
+        },
+      });
+
+      return [msg, conv];
     });
 
-    await this.pusherService.trigger(
-      `chat-${receiverId}`,
-      'new-message',
-      message,
-    );
+    // Emit Pusher events (outside transaction)
+    await Promise.all([
+      this.pusherService.trigger(`chat-${receiverId}`, 'new-message', {
+        message: msg,
+        conversationId: conv.id,
+      }),
+      this.pusherService.trigger(
+        `conversations-${receiverId}`,
+        'conversation-updated',
+        {
+          conversationId: conv.id,
+          lastMessage: conv.lastMessage,
+          lastMessageAt: conv.lastMessageAt,
+          otherUserId: senderId,
+        },
+      ),
+      this.pusherService.trigger(
+        `conversations-${senderId}`,
+        'conversation-updated',
+        {
+          conversationId: conv.id,
+          lastMessage: conv.lastMessage,
+          lastMessageAt: conv.lastMessageAt,
+          otherUserId: receiverId,
+        },
+      ),
+    ]);
 
     return msg;
   }
 
   async getUserChats(currentUserId: string): Promise<any> {
-    const sentTo = await this.prisma.chat.findMany({
-      where: { senderId: currentUserId },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        receiver: {
+    // find conversations where the user is userA or userB
+    const convs = await this.prisma.conversation.findMany({
+      where: {
+        OR: [{ userAId: currentUserId }, { userBId: currentUserId }],
+      },
+      orderBy: { lastMessageAt: 'desc' },
+      include: {
+        userA: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            isActive: true,
+            phoneNumber: true,
+            profileImage: true,
+          },
+        },
+        userB: {
           select: {
             id: true,
             firstname: true,
@@ -94,41 +158,20 @@ export class ChatService {
           },
         },
       },
-      distinct: ['receiverId'],
     });
 
-    const receivedFrom = await this.prisma.chat.findMany({
-      where: { receiverId: currentUserId },
-      select: {
-        sender: {
-          select: {
-            id: true,
-            firstname: true,
-            lastname: true,
-            isActive: true,
-            phoneNumber: true,
-            profileImage: true,
-          },
-        },
-      },
-      distinct: ['senderId'],
+    // map each conversation to the "other user" and include lastMessage / lastMessageAt
+    const result = convs.map((c) => {
+      const otherUser = c.userAId === currentUserId ? c.userB : c.userA;
+      return {
+        conversationId: c.id,
+        user: otherUser,
+        lastMessage: c.lastMessage,
+        lastMessageAt: c.lastMessageAt,
+      };
     });
 
-    // Merge unique users
-    const users = [
-      ...sentTo.map((c) => c.receiver),
-      ...receivedFrom.map((c) => c.sender),
-    ];
-
-    // Remove nulls and duplicates
-    const uniqueUsers = users
-      .filter(Boolean)
-      .filter(
-        (user, index, self) =>
-          index === self.findIndex((u) => u.id === user.id),
-      );
-
-    return uniqueUsers;
+    return result;
   }
 
   async getMesagesSenderReceiver(

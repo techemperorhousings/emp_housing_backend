@@ -63,6 +63,9 @@ model User {
   receivedChats Chat[]        @relation("receivedChats")
   reports       Report[]
   bankAccounts  BankAccount[]
+
+  conversationsA Conversation[] @relation("convoA")
+  conversationsB Conversation[] @relation("convoB")
 }
 
 model KYC {
@@ -414,6 +417,19 @@ model Chat {
   @@index([senderId, receiverId])
   @@index([receiverId, isRead]) // useful for unread messages query
   @@index([createdAt])
+}
+
+model Conversation {
+  id            String   @id @default(uuid())
+  userAId       String
+  userBId       String
+  lastMessage   String?
+  lastMessageAt DateTime @default(now())
+
+  userA User @relation("convoA", fields: [userAId], references: [id])
+  userB User @relation("convoB", fields: [userBId], references: [id])
+
+  @@unique([userAId, userBId])
 }
 
 model Report {
