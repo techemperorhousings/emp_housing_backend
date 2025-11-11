@@ -71,9 +71,9 @@ async function createRolesAndPermissions() {
 
 // Main function to handle the complete seeding process
 async function main() {
-  //await createRolesAndPermissions();
+  await createRolesAndPermissions();
 
-  await seedUsersAndRelated(prisma);
+  //await seedUsersAndRelated(prisma);
 
   console.log('Seeding completed successfully.');
 }
