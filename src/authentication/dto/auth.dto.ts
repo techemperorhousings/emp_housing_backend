@@ -53,7 +53,7 @@ export class AuthDto {
 
   @ApiProperty({
     description: 'Role ID',
-    example: '1234567890abcdef12345678',
+    example: '28655adb-f6d6-496e-b4c8-4cb63b1403dc',
   })
   @IsNotEmpty()
   @IsString()
