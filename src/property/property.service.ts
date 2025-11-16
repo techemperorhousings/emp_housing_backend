@@ -22,6 +22,12 @@ export class PropertyService {
       select: {
         id: true,
         kycVerified: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -34,16 +40,20 @@ export class PropertyService {
         'KYC must be verified before creating a property.',
       );
     }
+
+    const isAdmin = user.role.name === 'ADMIN';
     // Create property
     const newProperty = await this.prisma.property.create({
       data: {
         ...propertyData,
+        status: isAdmin ? 'APPROVED' : 'PENDING',
         owner: { connect: { id: ownerId } },
       },
     });
 
     return newProperty;
   }
+
   async findAll(
     filters: PropertyFilterDto,
   ): Promise<PaginatedResponse<Record<string, any>>> {
