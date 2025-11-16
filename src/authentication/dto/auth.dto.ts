@@ -52,10 +52,10 @@ export class AuthDto {
   readonly profileImage: string;
 
   @ApiProperty({
-    description: 'Role ID',
-    example: '28655adb-f6d6-496e-b4c8-4cb63b1403dc',
+    description: 'Role Name',
+    example: 'USER',
   })
   @IsNotEmpty()
   @IsString()
-  readonly roleId: string;
+  readonly roleName: string;
 }

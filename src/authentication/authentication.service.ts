@@ -49,17 +49,17 @@ export class AuthenticationService {
   }
 
   async signup(params: AuthDto): Promise<object> {
-    // Check if a user with the same email or username already exists
-    //check if roleId exists
-    const [existingUser, roleExists] = await Promise.all([
+    // Check if a user with the same email or phone number already exists
+    // Check if role exists by name
+    const [existingUser, role] = await Promise.all([
       this.prisma.user.findFirst({
         where: {
           OR: [{ email: params.email }, { phoneNumber: params.phoneNumber }],
         },
       }),
-      this.prisma.role.findUnique({
+      this.prisma.role.findFirst({
         where: {
-          id: params.roleId,
+          name: params.roleName,
         },
       }),
     ]);
@@ -69,7 +69,7 @@ export class AuthenticationService {
         'A user with this email or phone number already exists.',
       );
     }
-    if (!roleExists) {
+    if (!role) {
       throw new ForbiddenException('Role does not exist');
     }
 
@@ -86,7 +86,7 @@ export class AuthenticationService {
           password: hash,
           phoneNumber: params.phoneNumber,
           profileImage: params.profileImage,
-          roleId: params.roleId,
+          roleId: role.id, // Use the ID from the found role
         },
       });
 
