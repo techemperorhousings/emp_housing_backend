@@ -20,7 +20,7 @@ export class ChatController {
   constructor(private chatService: ChatService) {}
 
   @Post('/message')
-  async sendMessage(@Body() data: SendMessageDto): Promise<Chat> {
+  async sendMessage(@Body() data: SendMessageDto) {
     const resp = await this.chatService.sendMessage(data);
     return resp;
   }
