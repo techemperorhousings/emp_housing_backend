@@ -27,6 +27,7 @@ import { OwnerResource, Public } from '@decorators/index.decorator';
 import { OwnerGuard } from '@guards/owner.guard';
 import { PaginationQueryDto } from '@utils/pagination';
 import { AdminGuard } from '@guards/admin.guard';
+import { AvailabilityStatus } from '@prisma/client';
 
 @ApiTags('Properties')
 @ApiBearerAuth('JWT-auth')
@@ -124,6 +125,7 @@ export class PropertyController {
     };
   }
 
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Find a property by ID' })
   async findOne(@Param('id') id: string) {
@@ -189,6 +191,25 @@ export class PropertyController {
     return {
       message: 'Property rejected successfully',
       ...updated,
+    };
+  }
+
+  @Patch(':id/availability/:status')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(OwnerGuard)
+  @OwnerResource()
+  @ApiOperation({ summary: 'Update availability status of a property' })
+  async updateAvailabilityStatus(
+    @Param('id') id: string,
+    @Param('status') status: AvailabilityStatus,
+  ) {
+    const property = await this.propertyService.updateAvailabilityStatus(
+      id,
+      status,
+    );
+    return {
+      message: 'Property availability status updated successfully',
+      ...property,
     };
   }
 

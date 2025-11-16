@@ -334,4 +334,18 @@ export class PropertyService {
       },
     });
   }
+
+  async updateAvailabilityStatus(
+    propertyId: string,
+    availabilityStatus: 'SOLD' | 'ACTIVE' | 'ARCHIVED',
+  ): Promise<Property> {
+    await this.findOne(propertyId);
+
+    return this.prisma.property.update({
+      where: { id: propertyId },
+      data: {
+        availabilityStatus,
+      },
+    });
+  }
 }
