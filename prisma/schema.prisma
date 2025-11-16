@@ -93,6 +93,7 @@ model Property {
   listingStatus     ListingStatus  @default(ACTIVE)
   status            PropertyStatus @default(PENDING)
   listingType       ListingType    @default(FOR_SALE)
+  availabilityStatus AvailabilityStatus @default(ACTIVE)
   ownerId           String
   owner             User           @relation("PropertyOwner", fields: [ownerId], references: [id])
   reason            String?
@@ -533,6 +534,12 @@ enum ListingType {
   FOR_RENT
 }
 
+enum AvailabilityStatus {
+  SOLD
+  ACTIVE
+  ARCHIVED
+}
+
 enum BookingStatus {
   PENDING
   APPROVED
@@ -578,6 +585,8 @@ enum PropertyStatus {
   APPROVED
   PENDING
   REJECTED
+  SOLD
+  ARCHIVED
 }
 
 enum PropertyType {
