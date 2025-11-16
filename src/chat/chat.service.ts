@@ -15,118 +15,145 @@ export class ChatService {
     private pusherService: PusherService,
   ) {}
 
-  async sendMessage(data: SendMessageDto): Promise<Chat> {
+  async sendMessage(data: SendMessageDto): Promise<Chat[]> {
     const { senderId, message } = data;
 
-    // Fetch the admin role
-    const adminRole = await this.prisma.role.findUnique({
-      where: { name: 'ADMIN' },
-    });
+    // Fetch admin role and check sender in parallel
+    const [adminRole, sender] = await Promise.all([
+      this.prisma.role.findUnique({
+        where: { name: 'ADMIN' },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: senderId },
+        include: { role: true },
+      }),
+    ]);
 
     if (!adminRole) {
       throw new NotFoundException('Admin role not found');
     }
 
-    //Fetch an admin user
-    const admin = await this.prisma.user.findFirst({
-      where: { roleId: adminRole.id },
-    });
-
-    if (!admin) {
-      throw new NotFoundException('No admin user found');
-    }
-
-    // Check if the sender is an admin
-    const sender = await this.prisma.user.findUnique({
-      where: { id: senderId },
-      include: { role: true },
-    });
-
     if (!sender) {
       throw new NotFoundException('Sender not found');
     }
 
-    let receiverId: string;
+    const isAdmin = sender.role.name === 'ADMIN';
+    let receiverIds: string[];
 
-    if (sender.role.name === 'ADMIN') {
+    if (isAdmin) {
       // For admin, use the provided receiverId
       if (!data.receiverId) {
         throw new BadRequestException(
           'Receiver ID is required when admin sends a message',
         );
       }
-      receiverId = data.receiverId;
+      receiverIds = [data.receiverId];
     } else {
-      // For regular users, send to admin
-      receiverId = admin.id;
+      // For regular users, send to all admins
+      const admins = await this.prisma.user.findMany({
+        where: { roleId: adminRole.id },
+        select: { id: true },
+      });
+
+      if (admins.length === 0) {
+        throw new NotFoundException('No admin users found');
+      }
+
+      receiverIds = admins.map((admin) => admin.id);
     }
 
-    //Determine unique pair for conversation
-    const [userAId, userBId] = [senderId, receiverId].sort();
+    // Use transaction
+    const results = await this.prisma.$transaction(async (tx) => {
+      const messages: Chat[] = [];
+      const conversations = [];
 
-    // Wrap message + conversation in a transaction
-    const [msg, conv] = await this.prisma.$transaction(async (tx) => {
-      // create the message
-      const msg = await tx.chat.create({
-        data: {
-          senderId,
-          receiverId,
-          message,
-        },
-      });
+      // Create messages for all receivers
+      for (const receiverId of receiverIds) {
+        // Determine unique pair for conversation
+        const [userAId, userBId] = [senderId, receiverId].sort();
 
-      // upsert the conversation
-      const conv = await tx.conversation.upsert({
-        where: {
-          userAId_userBId: {
+        // Create the message
+        const msg = await tx.chat.create({
+          data: {
+            senderId,
+            receiverId,
+            message,
+          },
+        });
+
+        // Upsert the conversation
+        const conv = await tx.conversation.upsert({
+          where: {
+            userAId_userBId: {
+              userAId,
+              userBId,
+            },
+          },
+          create: {
             userAId,
             userBId,
+            lastMessage: message,
+            lastMessageAt: msg.createdAt,
           },
-        },
-        create: {
-          userAId,
-          userBId,
-          lastMessage: message,
-          lastMessageAt: msg.createdAt,
-        },
-        update: {
-          lastMessage: message,
-          lastMessageAt: msg.createdAt,
-        },
-      });
+          update: {
+            lastMessage: message,
+            lastMessageAt: msg.createdAt,
+          },
+        });
 
-      return [msg, conv];
+        messages.push(msg);
+        conversations.push(conv);
+      }
+
+      return { messages, conversations };
     });
 
-    // Emit Pusher events
-    await Promise.all([
-      this.pusherService.trigger(`chat-${receiverId}`, 'new-message', {
-        message: msg,
-        conversationId: conv.id,
-      }),
-      this.pusherService.trigger(
-        `conversations-${receiverId}`,
-        'conversation-updated',
-        {
-          conversationId: conv.id,
-          lastMessage: conv.lastMessage,
-          lastMessageAt: conv.lastMessageAt,
-          otherUserId: senderId,
-        },
-      ),
-      this.pusherService.trigger(
-        `conversations-${senderId}`,
-        'conversation-updated',
-        {
-          conversationId: conv.id,
-          lastMessage: conv.lastMessage,
-          lastMessageAt: conv.lastMessageAt,
-          otherUserId: receiverId,
-        },
-      ),
-    ]);
+    // Emit Pusher events after transaction
+    const pusherEvents = [];
 
-    return msg;
+    for (let i = 0; i < results.messages.length; i++) {
+      const msg = results.messages[i];
+      const conv = results.conversations[i];
+      const receiverId = receiverIds[i];
+
+      // Events for receiver
+      pusherEvents.push(
+        this.pusherService.trigger(`chat-${receiverId}`, 'new-message', {
+          message: msg,
+          conversationId: conv.id,
+        }),
+        this.pusherService.trigger(
+          `conversations-${receiverId}`,
+          'conversation-updated',
+          {
+            conversationId: conv.id,
+            lastMessage: conv.lastMessage,
+            lastMessageAt: conv.lastMessageAt,
+            otherUserId: senderId,
+          },
+        ),
+      );
+
+      // Event for sender (only once if multiple receivers)
+      if (i === 0) {
+        pusherEvents.push(
+          this.pusherService.trigger(
+            `conversations-${senderId}`,
+            'conversation-updated',
+            {
+              conversationId: conv.id,
+              lastMessage: conv.lastMessage,
+              lastMessageAt: conv.lastMessageAt,
+              otherUserId: receiverId,
+            },
+          ),
+        );
+      }
+    }
+
+    await Promise.all(pusherEvents);
+
+    return results.messages;
   }
 
   async getUserChats(currentUserId: string): Promise<any> {
