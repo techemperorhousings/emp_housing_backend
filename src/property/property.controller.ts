@@ -76,6 +76,17 @@ export class PropertyController {
     };
   }
 
+  @Get('/reports')
+  @ApiOperation({ summary: 'Get all property reports' })
+  @HttpCode(HttpStatus.OK)
+  async getAllReports() {
+    const reports = await this.getAllReports();
+    return {
+      message: 'Reported Properties gotten successfully',
+      ...reports,
+    };
+  }
+
   @Get('user/:userId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Find all properties owned by user' })

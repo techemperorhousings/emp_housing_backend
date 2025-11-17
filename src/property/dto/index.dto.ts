@@ -8,7 +8,12 @@ import {
   IsUUID,
   IsArray,
 } from 'class-validator';
-import { ListingType, PropertyStatus, PropertyType } from '@prisma/client';
+import {
+  AvailabilityStatus,
+  ListingType,
+  PropertyStatus,
+  PropertyType,
+} from '@prisma/client';
 import { PaginationQueryDto } from '@utils/pagination';
 import { Transform, Type } from 'class-transformer';
 
@@ -129,7 +134,16 @@ export class CreatePropertyDto {
   propertyDocument: string;
 }
 
-export class UpdatePropertyDto extends PartialType(CreatePropertyDto) {}
+export class UpdatePropertyDto extends PartialType(CreatePropertyDto) {
+  @ApiProperty({
+    example: AvailabilityStatus.ARCHIVED,
+    enum: AvailabilityStatus,
+    description: 'Availability status of the property',
+  })
+  @IsOptional()
+  @IsEnum(AvailabilityStatus)
+  availabilityStatus?: AvailabilityStatus;
+}
 
 export class PropertyFilterDto extends PaginationQueryDto {
   @ApiPropertyOptional({
