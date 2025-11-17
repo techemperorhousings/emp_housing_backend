@@ -19,6 +19,10 @@ export class OwnerGuard implements CanActivate {
       throw new ForbiddenException('Unauthorized access');
     }
 
+    if (user.role.name === 'ADMIN') {
+      return true;
+    }
+
     const property = await this.prisma.property.findUnique({
       where: { id: propertyId },
     });
